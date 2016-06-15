@@ -1,0 +1,11 @@
+{
+    "name": "web/crawler",
+    "autoload": {
+        "classmap": [
+            "src/"
+        ],
+        "psr-4": {
+            "Doody\\Crawler\\": "src/"
+        }
+    }
+}
