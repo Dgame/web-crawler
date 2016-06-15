@@ -16,9 +16,11 @@ fn spawn_chunk(chunk: Vec<String>) {
     let mut threads = vec![];
 
     for url in chunk {
-        threads.push(thread::spawn(move || {
-            crawl(&url)
-        }));
+        if !url.is_empty() {
+            threads.push(thread::spawn(move || {
+                crawl(&url)
+            }));
+        }
     }
 
     for child in threads {
