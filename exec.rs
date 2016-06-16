@@ -1,12 +1,8 @@
+const THREAD_NUM: usize = 8;
+
 fn spawn(links: Vec<String>) {
-    use std::cmp::min;
-
-    let thread_num = min(links.len(), 8);
-
-    for _ in 0..thread_num {
-        for chunk in links.chunks(thread_num) {
-            spawn_chunk(chunk.to_vec());
-        }
+    for chunk in links.chunks(THREAD_NUM) {
+        spawn_chunk(chunk.to_vec());
     }
 }
 
@@ -16,15 +12,12 @@ fn spawn_chunk(chunk: Vec<String>) {
     let mut threads = vec![];
 
     for url in chunk {
-        if !url.is_empty() {
-            threads.push(thread::spawn(move || {
-                crawl(&url)
-            }));
-        }
+        threads.push(thread::spawn(move || {
+            crawl(&url)
+        }));
     }
 
     for child in threads {
-        // Wait for the thread to finish. Returns a result.
         let _ = child.join();
     }
 }
@@ -43,10 +36,10 @@ fn crawl(url: &str) {
     println!("status: {}", output.status);
 
     let output = String::from_utf8_lossy(&output.stdout);
-    let links = output.split("\n").map(|s| String::from(s)).collect();
-    for url in &links {
-        println!("Link: {}", url);
-    }
+    let links : Vec<String> = output.split("\n").map(|s| s.trim()).filter(|s| !s.is_empty()).map(|s| String::from(s)).collect();
+
+    println!("Found: {:?}", &links);
+    println!("====");
 
     spawn(links);
 }

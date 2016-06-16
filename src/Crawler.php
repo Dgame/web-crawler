@@ -24,6 +24,10 @@ final class Crawler
      */
     private $dbh = null;
     /**
+     * @var string
+     */
+    private $parent = null;
+    /**
      * @var array
      */
     private $links = [];
@@ -61,7 +65,8 @@ final class Crawler
      */
     public function crawl(string $url)
     {
-        $this->links = [];
+        $this->parent = $url;
+        $this->links  = [];
 
         $content = @file_get_contents($url);
         if (!empty($content)) {
@@ -105,7 +110,7 @@ final class Crawler
     private function verifyLink(string $url) : bool
     {
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
-            $stmt = $this->dbh->prepare('SELECT COUNT(*) as count FROM crawler WHERE url = ?');
+            $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ?');
             if ($stmt->execute([$url])) {
                 return $stmt->fetch(PDO::FETCH_ASSOC)['count'] == 0;
             }
@@ -119,8 +124,8 @@ final class Crawler
      */
     private function insertLink(string $url)
     {
-        $stmt = $this->dbh->prepare('INSERT INTO crawler (url) VALUES (?)');
-        if ($stmt->execute([$url])) {
+        $stmt = $this->dbh->prepare('INSERT INTO crawler (url, parent) VALUES (?, ?)');
+        if ($stmt->execute([$url, $this->parent])) {
             $this->links[] = $url;
         }
     }
