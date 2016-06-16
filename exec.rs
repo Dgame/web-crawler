@@ -12,9 +12,7 @@ fn spawn_chunk(chunk: Vec<String>) {
     let mut threads = vec![];
 
     for url in chunk {
-        threads.push(thread::spawn(move || {
-            crawl(&url)
-        }));
+        threads.push(thread::spawn(move || crawl(&url)));
     }
 
     for child in threads {
@@ -23,20 +21,24 @@ fn spawn_chunk(chunk: Vec<String>) {
 }
 
 fn crawl(url: &str) {
-     use std::process::Command;
+    use std::process::Command;
 
-     println!("Crawl URL : {}", url);
+    println!("Crawl URL : {}", url);
 
     let output = Command::new("php")
-                        .arg("crawl.php")
-                        .arg(&url)
-                        .output()
-                        .unwrap_or_else(|e| { panic!("failed to execute process: {}", e) });
+        .arg("crawl.php")
+        .arg(&url)
+        .output()
+        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
     println!("status: {}", output.status);
 
     let output = String::from_utf8_lossy(&output.stdout);
-    let links : Vec<String> = output.split("\n").map(|s| s.trim()).filter(|s| !s.is_empty()).map(|s| String::from(s)).collect();
+    let links: Vec<String> = output.split("\n")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| String::from(s))
+        .collect();
 
     println!("Found: {:?}", &links);
     println!("====");
@@ -45,12 +47,10 @@ fn crawl(url: &str) {
 }
 
 fn main() {
-    spawn(vec![
-        String::from("http://web.de"),
-        String::from("http://heise.de"),
-        String::from("http://golem.de"),
-        String::from("http://reddit.com"),
-        String::from("http://spieleprogrammierer.de"),
-        String::from("http://forum.dlang.org")
-    ]);
+    spawn(vec![String::from("http://web.de"),
+               String::from("http://heise.de"),
+               String::from("http://golem.de"),
+               String::from("http://reddit.com"),
+               String::from("http://spieleprogrammierer.de"),
+               String::from("http://forum.dlang.org")]);
 }
