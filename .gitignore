@@ -1,5 +1,7 @@
+tags
 vendor
 .idea
 *.exe
 *.obj
 *.o
+exec

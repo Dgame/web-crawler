@@ -3,7 +3,7 @@
 namespace Doody\Crawler;
 
 use DOMDocument;
-use PDO;
+use MongoDB\Client;
 
 /**
  * Class Crawler
@@ -11,10 +11,6 @@ use PDO;
  */
 final class Crawler
 {
-    const DSN      = 'mysql:dbname=test;host=127.0.0.1';
-    const USER     = 'root';
-    const PASSWORD = '';
-
     /**
      * @var Crawler
      */
@@ -32,12 +28,12 @@ final class Crawler
      */
     private $links = [];
 
-    /**
-     * Crawler constructor.
-     */
+    private $collection = null;
+
     private function __construct()
     {
-        $this->dbh = new PDO(self::DSN, self::USER, self::PASSWORD, [PDO::ATTR_PERSISTENT => true]);
+        $client = new Client();
+        $this->collection = $client->selectCollection('mongodb', 'pages');
     }
 
     /**
@@ -110,10 +106,7 @@ final class Crawler
     private function verifyLink(string $url) : bool
     {
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
-            $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ?');
-            if ($stmt->execute([$url])) {
-                return $stmt->fetch(PDO::FETCH_ASSOC)['count'] == 0;
-            }
+            return $this->collection->count(['url' => $url]) == 0;
         }
 
         return false;
@@ -124,8 +117,13 @@ final class Crawler
      */
     private function insertLink(string $url)
     {
-        $stmt = $this->dbh->prepare('INSERT INTO crawler (url, parent) VALUES (?, ?)');
-        if ($stmt->execute([$url, $this->parent])) {
+        $result = $this->collection->insertOne(
+            [
+                'url' => $url,
+                'parent' => $this->parent,
+            ]
+        );
+        if ($result->getInsertedCount()) {
             $this->links[] = $url;
         }
     }
