@@ -102,7 +102,11 @@ final class Crawler
         $words   = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
+<<<<<<< 13561322bc6c647cafc3cc89d5bb5e2e811ceb65
         $words   = array_map(function (string $word) {
+=======
+        $words = array_map(function (string $word) {
+>>>>>>> added pr field
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
@@ -150,6 +154,8 @@ final class Crawler
             [
                 'url'    => $url,
                 'parent' => $this->parentUrl,
+                'content' => $this->content,
+                'pr' => 0,
             ]
         );
 
