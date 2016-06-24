@@ -14,8 +14,8 @@ final class Crawler
 {
     const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
-    const LOG      = false;
-    const LOG_FILE = 'log.txt';
+    const LOG           = false;
+    const LOG_FILE      = 'log.txt';
 
     /**
      * @var Crawler
@@ -126,10 +126,10 @@ final class Crawler
     {
         $content = strip_tags($body->item(0)->textContent);
         $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function (string $word) {
+        $words   = array_filter($words, function(string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words   = array_map(function (string $word) {
+        $words   = array_map(function(string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
@@ -176,7 +176,7 @@ final class Crawler
             );
             //$stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE parent = ?');
             //if ($stmt->execute([$url->getUrl()])) {
-                //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         }
 
         return 0;
@@ -192,12 +192,12 @@ final class Crawler
         //$stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ? AND parent = ?');
         return $this->collection->count(
             [
-                'url' => $url->getUrl(),
+                'url'    => $url->getUrl(),
                 'parent' => $this->parentUrl->getUrl(),
             ]
         );
         //if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
-            //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         //}
 
         //return 0;
@@ -230,10 +230,10 @@ final class Crawler
     {
         $result = $this->collection->insertOne(
             [
-                'url'    => $url->getUrl(),
-                'parent' => $this->parentUrl->getUrl(),
+                'url'     => $url->getUrl(),
+                'parent'  => $this->parentUrl->getUrl(),
                 'content' => $this->content,
-                'pr' => 0,
+                'pr'      => 0,
             ]
         );
 
