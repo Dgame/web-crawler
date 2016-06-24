@@ -2,20 +2,24 @@
 
 namespace Doody\Crawler\StopWords;
 
+use Doody\Crawler\Url;
+
 /**
  * Class StopWords
  * @package Doody\Crawler\StopWords
  */
 final class StopWordService
 {
-    const LANGUAGE_PATTERN = [Language::DE => '#(?:^de\.|\.de$)#'];
+    const LANGUAGE_PATTERN = [
+        Language::DE => '#(?:^de\.|\.de$)#'
+    ];
 
     /**
      * @var StopWordService
      */
     private static $instance = null;
     /**
-     * @var array
+     * @var StopWords[]
      */
     private $languages = [];
 
@@ -39,15 +43,15 @@ final class StopWordService
     }
 
     /**
-     * @param string $url
+     * @param Url $url
      *
      * @return Language
      * @throws \Exception
      */
-    public function detectLanguageFromURL(string $url) : Language
+    public function detectLanguageFromURL(Url $url) : Language
     {
         foreach (self::LANGUAGE_PATTERN as $language => $pattern) {
-            if (preg_match($pattern, $url)) {
+            if ($url->match($pattern)) {
                 return Language::Load($language);
             }
         }
@@ -71,11 +75,11 @@ final class StopWordService
     }
 
     /**
-     * @param string $url
+     * @param Url $url
      *
      * @return StopWords
      */
-    public function loadLanguageByURL(string $url) : StopWords
+    public function loadLanguageByURL(Url $url) : StopWords
     {
         $language = $this->detectLanguageFromURL($url);
 
