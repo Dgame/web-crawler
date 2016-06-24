@@ -4,6 +4,7 @@ namespace Doody\Crawler;
 
 use DOMDocument;
 use MongoDB\Client;
+use Doody\Crawler\StopWords\StopWordService;
 
 /**
  * Class Crawler
@@ -22,11 +23,15 @@ final class Crawler
     /**
      * @var string
      */
-    private $parent = null;
+    private $parentURL = null;
     /**
      * @var array
      */
     private $links = [];
+    /**
+     * @var array
+     */
+    private $content = [];
 
     private $collection = null;
 
@@ -61,8 +66,8 @@ final class Crawler
      */
     public function crawl(string $url)
     {
-        $this->parent = $url;
-        $this->links  = [];
+        $this->parentURL = $url;
+        $this->links     = [];
 
         $content = @file_get_contents($url);
         if (!empty($content)) {
@@ -77,8 +82,26 @@ final class Crawler
     {
         $doc = new DOMDocument('1.0', 'utf-8');
         if (@$doc->loadHTML($content)) {
+            $this->parseContent($doc->getElementsByTagName('body'));
             $this->scanLinks($doc);
         }
+    }
+
+    /**
+     * @param \DOMNodeList $body
+     */
+    private function parseContent(\DOMNodeList $body)
+    {
+        $content = strip_tags($body->item(0)->textContent);
+        $words   = preg_split('#\s+#', $content);
+        $words   = array_filter($words, function(string $word) {
+            return preg_match('#[a-z]#i', $word);
+        });
+        $words = array_map(function(string $word) {
+            return preg_replace('#[^a-z\d]#i', '', $word);
+        }, $words);
+
+        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentURL)->removeStopwords($words);
     }
 
     /**
@@ -123,7 +146,7 @@ final class Crawler
                 'parent' => $this->parent,
             ]
         );
-        if ($result->getInsertedCount()) {
+        if ($result->getInsertedCount() !== 0) {
             $this->links[] = $url;
         }
     }
