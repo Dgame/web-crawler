@@ -15,19 +15,22 @@ final class Crawler
     const DSN      = 'mysql:dbname=test;host=127.0.0.1';
     const USER     = 'root';
     const PASSWORD = '';
+    const LOG      = false;
+    const LOG_FILE = 'log.txt';
 
     /**
      * @var Crawler
      */
     private static $instance = null;
+
     /**
      * @var PDO
      */
     private $dbh = null;
     /**
-     * @var string
+     * @var Url|null
      */
-    private $parentURL = null;
+    private $parentUrl = null;
     /**
      * @var array
      */
@@ -36,6 +39,18 @@ final class Crawler
      * @var array
      */
     private $content = [];
+
+    /**
+     * @return Crawler
+     */
+    public static function Instance() : Crawler
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
 
     /**
      * Crawler constructor.
@@ -54,15 +69,14 @@ final class Crawler
     }
 
     /**
-     * @return Crawler
+     * @param string $format
+     * @param array  ...$args
      */
-    public static function Instance() : Crawler
+    public function log(string $format, ...$args)
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
+        if (self::LOG) {
+            file_put_contents(self::LOG_FILE, vprintf($format, $args) . PHP_EOL, FILE_APPEND);
         }
-
-        return self::$instance;
     }
 
     /**
@@ -70,12 +84,22 @@ final class Crawler
      */
     public function crawl(string $url)
     {
-        $this->parentURL = $url;
+        $url = new Url($url);
+
+        $this->parentUrl = $url;
         $this->links     = [];
 
-        $content = @file_get_contents($url);
-        if (!empty($content)) {
-            $this->parseDom($content);
+        $this->log('Scanne die Seite "%s"', $url->getUrl());
+
+        if ($this->shouldCrawlLink($url)) {
+            $content = $url->getContent();
+            if (!empty($content)) {
+                $this->parseDom($content);
+            } else {
+                $this->log('Die Seite "%s" hat keinen Content', $url->getUrl());
+            }
+        } else {
+            $this->log('Die Seite "%s" (childs: %d) wurde nicht verifiziert', $url->getUrl(), $this->countChildsOf($url));
         }
     }
 
@@ -88,6 +112,8 @@ final class Crawler
         if (@$doc->loadHTML($content)) {
             $this->parseContent($doc->getElementsByTagName('body'));
             $this->scanLinks($doc);
+        } else {
+            $this->log('Die Seite "%s" konnte nicht geladen werden', $this->parentUrl->getUrl());
         }
     }
 
@@ -98,14 +124,14 @@ final class Crawler
     {
         $content = strip_tags($body->item(0)->textContent);
         $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function(string $word) {
+        $words   = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words = array_map(function(string $word) {
+        $words   = array_map(function (string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
-        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentURL)->removeStopwords($words);
+        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
     }
 
     /**
@@ -114,42 +140,83 @@ final class Crawler
     private function scanLinks(DOMDocument $doc)
     {
         $links = $doc->getElementsByTagName('a');
+
+        $this->log('Die Seite "%s" hat %d Links', $this->parentUrl->getUrl(), $links->length);
+
         for ($i = 0; $i < $links->length; $i++) {
+            /** @var \DOMElement $link */
             $link = $links->item($i);
             if ($link->hasAttribute('href')) {
-                $url = trim($link->getAttribute('href'));
-                if ($this->verifyLink($url)) {
-                    $this->insertLink($url);
+                $url = new Url($link->getAttribute('href'));
+                if ($this->shouldCrawlLink($url)) {
+                    $this->links[] = $url->getUrl();
+
+                    if ($this->shouldInsertLink($url)) {
+                        $this->insertLink($url);
+                    }
                 }
             }
         }
     }
 
     /**
-     * @param string $url
+     * @param Url $url
      *
-     * @return bool
+     * @return int
      */
-    private function verifyLink(string $url) : bool
+    private function countChildsOf(Url $url) : int
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
-            $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ?');
-            if ($stmt->execute([$url])) {
-                return $stmt->fetch(PDO::FETCH_ASSOC)['count'] == 0;
-            }
+        $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE parent = ?');
+        if ($stmt->execute([$url->getUrl()])) {
+            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         }
 
-        return false;
+        return 0;
     }
 
     /**
-     * @param string $url
+     * @param Url $url
+     *
+     * @return int
      */
-    private function insertLink(string $url)
+    private function countRelation(Url $url) : int
+    {
+        $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ? AND parent = ?');
+        if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
+            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param Url $url
+     *
+     * @return bool
+     */
+    private function shouldCrawlLink(Url $url) : bool
+    {
+        return $url->isValid() && $this->countChildsOf($url) === 0;
+    }
+
+    /**
+     * @param Url $url
+     *
+     * @return bool
+     */
+    private function shouldInsertLink(Url $url) : bool
+    {
+        return $url->isValid() && $this->countRelation($url) === 0;
+    }
+
+    /**
+     * @param Url $url
+     */
+    private function insertLink(Url $url)
     {
         $stmt = $this->dbh->prepare('INSERT INTO crawler (url, parent) VALUES (?, ?)');
-        if ($stmt->execute([$url, $this->parentURL])) {
-            $this->links[] = $url;
+        if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
+            $this->links[] = $url->getUrl();
         }
     }
 }

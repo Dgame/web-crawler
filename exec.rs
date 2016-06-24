@@ -1,6 +1,8 @@
 const THREAD_NUM: usize = 8;
 
 fn spawn(links: Vec<String>) {
+    println!("Spawn: {:?}", &links);
+
     for chunk in links.chunks(THREAD_NUM) {
         spawn_chunk(chunk.to_vec());
     }
@@ -29,28 +31,28 @@ fn crawl(url: &str) {
         .arg("crawl.php")
         .arg(&url)
         .output()
-        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
+        .unwrap_or_else(|e| panic!("failed to execute child process: {}", e));
 
-    println!("status: {}", output.status);
-
+    println!("status: {}", &output.status);
     let output = String::from_utf8_lossy(&output.stdout);
+    println!("output: {}", &output);
+
     let links: Vec<String> = output.split("\n")
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| String::from(s))
         .collect();
 
-    println!("Found: {:?}", &links);
-    println!("====");
-
     spawn(links);
 }
 
 fn main() {
-    spawn(vec![String::from("http://web.de"),
-               String::from("http://heise.de"),
-               String::from("http://golem.de"),
-               String::from("http://reddit.com"),
+    spawn(vec![
+        // String::from("http://web.de"),
+               //String::from("http://heise.de"),
+               //String::from("http://golem.de"),
+               //String::from("http://reddit.com"),
                String::from("http://spieleprogrammierer.de"),
-               String::from("http://forum.dlang.org")]);
+               //String::from("http://forum.dlang.org")
+               ]);
 }
