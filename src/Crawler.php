@@ -3,8 +3,8 @@
 namespace Doody\Crawler;
 
 use DOMDocument;
-use MongoDB\Client;
 use Doody\Crawler\StopWords\StopWordService;
+use MongoDB\Client;
 
 /**
  * Class Crawler
@@ -12,18 +12,17 @@ use Doody\Crawler\StopWords\StopWordService;
  */
 final class Crawler
 {
+    const DB_NAME       = 'mongodb';
+    const DB_COLLECTION = 'pages';
+
     /**
      * @var Crawler
      */
     private static $instance = null;
     /**
-     * @var PDO
-     */
-    private $dbh = null;
-    /**
      * @var string
      */
-    private $parentURL = null;
+    private $parentUrl = null;
     /**
      * @var array
      */
@@ -32,13 +31,17 @@ final class Crawler
      * @var array
      */
     private $content = [];
-
+    /**
+     * @var \MongoDB\Collection
+     */
     private $collection = null;
 
+    /**
+     * Crawler constructor.
+     */
     private function __construct()
     {
-        $client = new Client();
-        $this->collection = $client->selectCollection('mongodb', 'pages');
+        $this->collection = (new Client())->selectCollection(self::DB_NAME, self::DB_COLLECTION);
     }
 
     /**
@@ -66,12 +69,14 @@ final class Crawler
      */
     public function crawl(string $url)
     {
-        $this->parentURL = $url;
         $this->links     = [];
+        $this->parentUrl = $url;
 
-        $content = @file_get_contents($url);
-        if (!empty($content)) {
-            $this->parseDom($content);
+        if ($this->verifyLink($url)) {
+            $content = @file_get_contents($url);
+            if (!empty($content)) {
+                $this->parseDom($content);
+            }
         }
     }
 
@@ -94,14 +99,14 @@ final class Crawler
     {
         $content = strip_tags($body->item(0)->textContent);
         $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function(string $word) {
+        $words   = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words = array_map(function(string $word) {
+        $words   = array_map(function (string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
-        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentURL)->removeStopwords($words);
+        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
     }
 
     /**
@@ -111,6 +116,7 @@ final class Crawler
     {
         $links = $doc->getElementsByTagName('a');
         for ($i = 0; $i < $links->length; $i++) {
+            /** @var \DOMElement $link */
             $link = $links->item($i);
             if ($link->hasAttribute('href')) {
                 $url = trim($link->getAttribute('href'));
@@ -129,7 +135,7 @@ final class Crawler
     private function verifyLink(string $url) : bool
     {
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
-            return $this->collection->count(['url' => $url]) == 0;
+            return $this->collection->count(['url' => $url]) === 0;
         }
 
         return false;
@@ -142,10 +148,11 @@ final class Crawler
     {
         $result = $this->collection->insertOne(
             [
-                'url' => $url,
-                'parent' => $this->parent,
+                'url'    => $url,
+                'parent' => $this->parentUrl,
             ]
         );
+
         if ($result->getInsertedCount() !== 0) {
             $this->links[] = $url;
         }
