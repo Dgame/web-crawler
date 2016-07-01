@@ -26,17 +26,14 @@ final class Crawler
      * @var Url|null
      */
     private $parentUrl = null;
-
     /**
      * @var array
      */
     private $links = [];
-
     /**
      * @var array
      */
     private $content = [];
-
     /**
      * @var \MongoDB\Collection
      */
@@ -45,7 +42,7 @@ final class Crawler
     /**
      * @return Crawler
      */
-    public static function Instance() : Crawler
+    public static function Instance(): Crawler
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -65,19 +62,23 @@ final class Crawler
     /**
      * @return array
      */
-    public function getScannedLinks() : array
+    public function getScannedLinks(): array
     {
         return $this->links;
     }
 
     /**
-     * @param string $format
+     * @param string $input
      * @param array  ...$args
      */
-    public function log(string $format, ...$args)
+    public function log(string $input, ...$args)
     {
         if (self::LOG) {
-            file_put_contents(self::LOG_FILE, vprintf($format, $args) . PHP_EOL, FILE_APPEND);
+            if (!empty($args)) {
+                $input = vprintf($input, $args);
+            }
+
+            file_put_contents(self::LOG_FILE, $input . PHP_EOL, FILE_APPEND);
         }
     }
 
@@ -126,10 +127,10 @@ final class Crawler
     {
         $content = strip_tags($body->item(0)->textContent);
         $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function(string $word) {
+        $words   = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words   = array_map(function(string $word) {
+        $words   = array_map(function (string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
@@ -166,7 +167,7 @@ final class Crawler
      *
      * @return int
      */
-    private function countChildsOf(Url $url) : int
+    private function countChildsOf(Url $url): int
     {
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
             return $this->collection->count(
@@ -174,9 +175,6 @@ final class Crawler
                     'parent' => $url->getUrl(),
                 ]
             );
-            //$stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE parent = ?');
-            //if ($stmt->execute([$url->getUrl()])) {
-            //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         }
 
         return 0;
@@ -187,20 +185,14 @@ final class Crawler
      *
      * @return int
      */
-    private function countRelation(Url $url) : int
+    private function countRelation(Url $url): int
     {
-        //$stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ? AND parent = ?');
         return $this->collection->count(
             [
                 'url'    => $url->getUrl(),
                 'parent' => $this->parentUrl->getUrl(),
             ]
         );
-        //if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
-        //return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-        //}
-
-        //return 0;
     }
 
     /**
@@ -208,7 +200,7 @@ final class Crawler
      *
      * @return bool
      */
-    private function shouldCrawlLink(Url $url) : bool
+    private function shouldCrawlLink(Url $url): bool
     {
         return $url->isValid() && $this->countChildsOf($url) === 0;
     }
@@ -218,7 +210,7 @@ final class Crawler
      *
      * @return bool
      */
-    private function shouldInsertLink(Url $url) : bool
+    private function shouldInsertLink(Url $url): bool
     {
         return $url->isValid() && $this->countRelation($url) === 0;
     }

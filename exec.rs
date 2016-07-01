@@ -27,23 +27,20 @@ fn crawl(url: &str) {
 
     println!("Crawl URL : {}", url);
 
-    let output = Command::new("php")
-        .arg("crawl.php")
-        .arg(&url)
-        .output()
-        .unwrap_or_else(|e| panic!("failed to execute child process: {}", e));
+    let result = Command::new("php").arg("crawl.php").arg(&url).output();
+    if let Ok(output) = result {
+        println!("status: {}", &output.status);
+        let output = String::from_utf8_lossy(&output.stdout);
+        println!("output: {}", &output);
 
-    println!("status: {}", &output.status);
-    let output = String::from_utf8_lossy(&output.stdout);
-    println!("output: {}", &output);
+        let links: Vec<String> = output.split("\n")
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| String::from(s))
+            .collect();
 
-    let links: Vec<String> = output.split("\n")
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| String::from(s))
-        .collect();
-
-    spawn(links);
+        spawn(links);
+    }
 }
 
 fn main() {
@@ -65,6 +62,5 @@ fn main() {
                String::from("http://golem.de"),
                String::from("http://reddit.com"),
                String::from("http://spieleprogrammierer.de"),
-               //String::from("http://forum.dlang.org")
-               ]);
+               String::from("http://forum.dlang.org")]);
 }
