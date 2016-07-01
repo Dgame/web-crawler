@@ -45,7 +45,6 @@ fn crawl(url: &str) {
 
 fn main() {
     spawn(vec![String::from("http://web.de"),
-               String::from("http://yahoo.de"),
                String::from("http://gmx.de"),
                String::from("http://www.zeit.de/news/index"),
                String::from("http://www.t-online.de/nachrichten/"),
