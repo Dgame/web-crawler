@@ -63,7 +63,7 @@ final class Crawler
      */
     public function getScannedLinks(): array
     {
-        return $this->links;
+        return array_unique($this->links);
     }
 
     /**
@@ -91,9 +91,9 @@ final class Crawler
         $this->parentUrl = $url;
         $this->links     = [];
 
-        $this->log('Scanne die Seite "%s"', $url->getUrl());
-
         if ($this->shouldCrawlLink($url)) {
+            $this->log('Scanne die Seite "%s"', $url->getUrl());
+
             $content = $url->getContent();
             if (!empty($content)) {
                 $this->parseDom($content);
@@ -124,16 +124,19 @@ final class Crawler
      */
     private function parseContent(\DOMNodeList $body)
     {
-        $content = strip_tags($body->item(0)->textContent);
-        $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function (string $word) {
-            return preg_match('#[a-z]#i', $word);
-        });
-        $words   = array_map(function (string $word) {
-            return preg_replace('#[^a-z\d]#i', '', $word);
-        }, $words);
+//        $content = strip_tags($body->item(0)->textContent);
+//        $words   = preg_split('#\s+#', $content);
+//        $words   = array_map(function (string $word) {
+//            return preg_replace('#[^\w\d_\.\(\)\[\]\{\}\#\*=\+><\|\$-]#', '', $word);
+//        }, $words);
+//        $words   = array_filter($words, function (string $word) {
+//            return preg_match('#[a-z]+#i', $word);
+//        });
+//        $words   = array_map('trim', $words);
+//
+//        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
 
-        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
+        $this->content = $body->item(0)->textContent;
     }
 
     /**
@@ -168,15 +171,11 @@ final class Crawler
      */
     private function countChildsOf(Url $url): int
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
-            return $this->collection->count(
-                [
-                    ['in' => ['$elemMatch' => ['$eq' => $url->getUrl()]]]
-                ]
-            );
-        }
-
-        return 0;
+        return $this->collection->count(
+            [
+                'in' => ['$elemMatch' => ['$eq' => $url->getUrl()]]
+            ]
+        );
     }
 
     /**
@@ -189,7 +188,7 @@ final class Crawler
         return $this->collection->count(
             [
                 'url' => $url->getUrl(),
-                ['in' => ['$elemMatch' => ['$eq' => $this->parentUrl->getUrl()]]]
+                'in'  => ['$elemMatch' => ['$eq' => $this->parentUrl->getUrl()]]
             ]
         );
     }

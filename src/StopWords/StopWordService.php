@@ -11,7 +11,7 @@ use Doody\Crawler\Url;
 final class StopWordService
 {
     const LANGUAGE_PATTERN = [
-        Language::DE => '#(?:^de\.|\.de$)#'
+        Language::DE => '#(?:de\.|\.de)#'
     ];
 
     /**
