@@ -11,10 +11,10 @@ use MongoDB\Client;
  */
 final class Crawler
 {
-    const DB_NAME = 'mongodb';
+    const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
-    const LOG = true;
-    const LOG_FILE = 'log.txt';
+    const LOG           = true;
+    const LOG_FILE      = 'log.txt';
 
     /**
      * @var Crawler
@@ -77,7 +77,7 @@ final class Crawler
                 $input = vprintf($input, $args);
             }
 
-            file_put_contents(self::LOG_FILE, $input.PHP_EOL, FILE_APPEND);
+            file_put_contents(self::LOG_FILE, $input . PHP_EOL, FILE_APPEND);
         }
     }
 
@@ -89,7 +89,7 @@ final class Crawler
         $url = new Url($url);
 
         $this->parentUrl = $url;
-        $this->links = [];
+        $this->links     = [];
 
         $this->log('Scanne die Seite "%s"', $url->getUrl());
 
@@ -125,11 +125,11 @@ final class Crawler
     private function parseContent(\DOMNodeList $body)
     {
         $content = strip_tags($body->item(0)->textContent);
-        $words = preg_split('#\s+#', $content);
-        $words = array_filter($words, function (string $word) {
+        $words   = preg_split('#\s+#', $content);
+        $words   = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words = array_map(function (string $word) {
+        $words   = array_map(function (string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
@@ -189,7 +189,7 @@ final class Crawler
         return $this->collection->count(
             [
                 'url' => $url->getUrl(),
-                'in' => $this->parentUrl->getUrl(),
+                'in'  => $this->parentUrl->getUrl(),
             ]
         );
     }
@@ -219,32 +219,29 @@ final class Crawler
      */
     private function insertLink(Url $url)
     {
-        $result = 0;
-        $entry = $this->collection->findOne([
-            'url' => $url,
-        ]);
-        if ($entry !== null) {
-            $entry['in'][] = $this->parentUrl->getUrl();
+        if ($this->collection->findOne(['url' => $url->getUrl()])) {
             $result = $this->collection->updateOne(
                 [
-                    'url' => $url
+                    'url' => $url->getUrl()
                 ],
                 [
-                    '$set' => ['']
+                    '$addToSet' => [
+                        'in' => $this->parentUrl->getUrl()
+                    ]
                 ]
             );
         } else {
             $result = $this->collection->insertOne(
                 [
                     'url' => $url->getUrl(),
-                    'in' => [$this->parentUrl->getUrl()],
-                    'content' => $this->content,
-                    'pr' => 0,
+                    'in'  => [
+                        $this->parentUrl->getUrl()
+                    ]
                 ]
             );
         }
 
-        if ($result->getInsertedCount() !== 0) {
+        if ($result->isAcknowledged()) {
             $this->links[] = $url->getUrl();
         }
     }
