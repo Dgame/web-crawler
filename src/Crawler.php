@@ -74,7 +74,7 @@ final class Crawler
     {
         if (self::LOG) {
             if (!empty($args)) {
-                $input = vprintf($input, $args);
+                $input = vsprintf($input, $args);
             }
 
             file_put_contents(self::LOG_FILE, $input . PHP_EOL, FILE_APPEND);
@@ -171,7 +171,7 @@ final class Crawler
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
             return $this->collection->count(
                 [
-                    'in' => $url->getUrl(),
+                    ['in' => ['$elemMatch' => ['$eq' => $url->getUrl()]]]
                 ]
             );
         }
@@ -189,7 +189,7 @@ final class Crawler
         return $this->collection->count(
             [
                 'url' => $url->getUrl(),
-                'in'  => $this->parentUrl->getUrl(),
+                ['in' => ['$elemMatch' => ['$eq' => $this->parentUrl->getUrl()]]]
             ]
         );
     }
@@ -219,7 +219,13 @@ final class Crawler
      */
     private function insertLink(Url $url)
     {
-        if ($this->collection->findOne(['url' => $url->getUrl()])) {
+        $entry = $this->collection->findOne(
+            [
+                'url' => $url->getUrl()
+            ]
+        );
+
+        if ($entry !== null) {
             $result = $this->collection->updateOne(
                 [
                     'url' => $url->getUrl()
@@ -233,8 +239,10 @@ final class Crawler
         } else {
             $result = $this->collection->insertOne(
                 [
-                    'url' => $url->getUrl(),
-                    'in'  => [
+                    'url'     => $url->getUrl(),
+                    'content' => $this->content,
+                    'pr'      => 0,
+                    'in'      => [
                         $this->parentUrl->getUrl()
                     ]
                 ]

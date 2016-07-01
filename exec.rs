@@ -27,20 +27,18 @@ fn crawl(url: &str) {
 
     println!("Crawl URL : {}", url);
 
-    let result = Command::new("php").arg("crawl.php").arg(&url).output();
-    if let Ok(output) = result {
-        println!("status: {}", &output.status);
-        let output = String::from_utf8_lossy(&output.stdout);
-        println!("output: {}", &output);
+    let output = Command::new("php").arg("crawl.php").arg(&url).output().unwrap();
+    println!("status: {}", &output.status);
+    let output = String::from_utf8_lossy(&output.stdout);
+    println!("output: {}", &output);
 
-        let links: Vec<String> = output.split("\n")
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(|s| String::from(s))
-            .collect();
+    let links: Vec<String> = output.split("\n")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| String::from(s))
+        .collect();
 
-        spawn(links);
-    }
+    spawn(links);
 }
 
 fn main() {
