@@ -7,15 +7,14 @@ use Doody\Crawler\StopWords\StopWordService;
 use MongoDB\Client;
 
 /**
- * Class Crawler
- * @package Doody\Crawler
+ * Class Crawler.
  */
 final class Crawler
 {
-    const DB_NAME       = 'mongodb';
+    const DB_NAME = 'mongodb';
     const DB_COLLECTION = 'pages';
-    const LOG           = false;
-    const LOG_FILE      = 'log.txt';
+    const LOG = true;
+    const LOG_FILE = 'log.txt';
 
     /**
      * @var Crawler
@@ -78,7 +77,7 @@ final class Crawler
                 $input = vprintf($input, $args);
             }
 
-            file_put_contents(self::LOG_FILE, $input . PHP_EOL, FILE_APPEND);
+            file_put_contents(self::LOG_FILE, $input.PHP_EOL, FILE_APPEND);
         }
     }
 
@@ -90,7 +89,7 @@ final class Crawler
         $url = new Url($url);
 
         $this->parentUrl = $url;
-        $this->links     = [];
+        $this->links = [];
 
         $this->log('Scanne die Seite "%s"', $url->getUrl());
 
@@ -126,11 +125,11 @@ final class Crawler
     private function parseContent(\DOMNodeList $body)
     {
         $content = strip_tags($body->item(0)->textContent);
-        $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function (string $word) {
+        $words = preg_split('#\s+#', $content);
+        $words = array_filter($words, function (string $word) {
             return preg_match('#[a-z]#i', $word);
         });
-        $words   = array_map(function (string $word) {
+        $words = array_map(function (string $word) {
             return preg_replace('#[^a-z\d]#i', '', $word);
         }, $words);
 
@@ -146,7 +145,7 @@ final class Crawler
 
         $this->log('Die Seite "%s" hat %d Links', $this->parentUrl->getUrl(), $links->length);
 
-        for ($i = 0; $i < $links->length; $i++) {
+        for ($i = 0; $i < $links->length; ++$i) {
             /** @var \DOMElement $link */
             $link = $links->item($i);
             if ($link->hasAttribute('href')) {
@@ -172,7 +171,7 @@ final class Crawler
         if (filter_var($url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#i', $url)) {
             return $this->collection->count(
                 [
-                    'parent' => $url->getUrl(),
+                    'in' => $url->getUrl(),
                 ]
             );
         }
@@ -189,8 +188,8 @@ final class Crawler
     {
         return $this->collection->count(
             [
-                'url'    => $url->getUrl(),
-                'parent' => $this->parentUrl->getUrl(),
+                'url' => $url->getUrl(),
+                'in' => $this->parentUrl->getUrl(),
             ]
         );
     }
@@ -220,14 +219,30 @@ final class Crawler
      */
     private function insertLink(Url $url)
     {
-        $result = $this->collection->insertOne(
-            [
-                'url'     => $url->getUrl(),
-                'parent'  => $this->parentUrl->getUrl(),
-                'content' => $this->content,
-                'pr'      => 0,
-            ]
-        );
+        $result = 0;
+        $entry = $this->collection->findOne([
+            'url' => $url,
+        ]);
+        if ($entry !== null) {
+            $entry['in'][] = $this->parentUrl->getUrl();
+            $result = $this->collection->updateOne(
+                [
+                    'url' => $url
+                ],
+                [
+                    '$set' => ['']
+                ]
+            );
+        } else {
+            $result = $this->collection->insertOne(
+                [
+                    'url' => $url->getUrl(),
+                    'in' => [$this->parentUrl->getUrl()],
+                    'content' => $this->content,
+                    'pr' => 0,
+                ]
+            );
+        }
 
         if ($result->getInsertedCount() !== 0) {
             $this->links[] = $url->getUrl();
