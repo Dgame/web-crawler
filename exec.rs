@@ -42,14 +42,14 @@ fn crawl(url: &str) {
 }
 
 fn main() {
-    spawn(vec![String::from("http://web.de"),
+    spawn(vec![/*String::from("http://web.de"),
                String::from("http://gmx.de"),
                String::from("http://www.zeit.de/news/index"),
                String::from("http://www.t-online.de/nachrichten/"),
                String::from("http://www.focus.de/"),
-               String::from("http://www.n-tv.de/"),
+               String::from("http://www.n-tv.de/"),*/
                String::from("http://www.weltderwunder.de/"),
-               String::from("http://www.zdnet.de/"),
+               /*String::from("http://www.zdnet.de/"),
                String::from("http://www.it-business.de/"),
                String::from("http://www.cnet.com/news/"),
                String::from("http://www.pcwelt.de/"),
@@ -59,5 +59,5 @@ fn main() {
                String::from("http://golem.de"),
                String::from("http://reddit.com"),
                String::from("http://spieleprogrammierer.de"),
-               String::from("http://forum.dlang.org")]);
+               String::from("http://forum.dlang.org")*/]);
 }

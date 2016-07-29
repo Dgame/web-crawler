@@ -22,8 +22,8 @@ class PageRank
         $cursor = $db->command(
             [
                 'mapReduce' => 'pages',
-                'map'       => new Javascript(file_get_contents('src/prep_map.js')),
-                'reduce'    => new Javascript(file_get_contents('src/prep_reduce.js')),
+                'map'       => new Javascript(file_get_contents('src/js/prep_map.js')),
+                'reduce'    => new Javascript(file_get_contents('src/js/prep_reduce.js')),
                 'out'       => self::PR_COLLECTION,
             ]
         );
@@ -35,8 +35,8 @@ class PageRank
         $cursor   = $database->command(
             [
                 'mapReduce' => 'pages',
-                'map'       => new Javascript(file_get_contents('src/map.js')),
-                'reduce'    => new Javascript(file_get_contents('src/reduce.js')),
+                'map'       => new Javascript(file_get_contents('src/js/map.js')),
+                'reduce'    => new Javascript(file_get_contents('src/js/reduce.js')),
                 'out'       => 'pr_out',
             ]
         );

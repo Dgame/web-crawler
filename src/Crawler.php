@@ -3,7 +3,6 @@
 namespace Doody\Crawler;
 
 use DOMDocument;
-use Doody\Crawler\StopWords\StopWordService;
 use MongoDB\Client;
 
 /**
@@ -124,18 +123,6 @@ final class Crawler
      */
     private function parseContent(\DOMNodeList $body)
     {
-//        $content = strip_tags($body->item(0)->textContent);
-//        $words   = preg_split('#\s+#', $content);
-//        $words   = array_map(function (string $word) {
-//            return preg_replace('#[^\w\d_\.\(\)\[\]\{\}\#\*=\+><\|\$-]#', '', $word);
-//        }, $words);
-//        $words   = array_filter($words, function (string $word) {
-//            return preg_match('#[a-z]+#i', $word);
-//        });
-//        $words   = array_map('trim', $words);
-//
-//        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
-
         $this->content = base64_encode(gzdeflate($body->item(0)->textContent, 9));
     }
 
