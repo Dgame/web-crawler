@@ -1,7 +1,19 @@
+#[allow(dead_code)]
+const LOG_NONE: u32   = 0x0;
+const LOG_SPAWN: u32  = 0x1;
+const LOG_URL: u32    = 0x2;
+const LOG_STATUS: u32 = 0x4;
+const LOG_OUTPUT: u32 = 0x8;
+#[allow(dead_code)]
+const LOG_ALL: u32    = LOG_SPAWN | LOG_URL | LOG_STATUS | LOG_OUTPUT;
+
+const LOG_LEVEL: u32 = LOG_NONE;
 const THREAD_NUM: usize = 8;
 
 fn spawn(links: Vec<String>) {
-    println!("Spawn: {:?}", &links);
+    if LOG_LEVEL & LOG_SPAWN != 0 {
+        println!("Spawn: {:?}", &links);
+    }
 
     for chunk in links.chunks(THREAD_NUM) {
         spawn_chunk(chunk.to_vec());
@@ -25,12 +37,19 @@ fn spawn_chunk(chunk: Vec<String>) {
 fn crawl(url: &str) {
     use std::process::Command;
 
-    println!("Crawl URL : {}", url);
+    if LOG_LEVEL & LOG_URL != 0 {
+        println!("Crawl URL : {}", url);
+    }
 
     let output = Command::new("php").arg("crawl.php").arg(&url).output().unwrap();
-    println!("status: {}", &output.status);
+    if LOG_LEVEL & LOG_STATUS != 0 {
+        println!("status: {}", &output.status);
+    }
+
     let output = String::from_utf8_lossy(&output.stdout);
-    println!("output: {}", &output);
+    if LOG_LEVEL & LOG_OUTPUT != 0 {
+        println!("output: {}", &output);
+    }
 
     let links: Vec<String> = output.split("\n")
         .map(|s| s.trim())
@@ -42,14 +61,14 @@ fn crawl(url: &str) {
 }
 
 fn main() {
-    spawn(vec![/*String::from("http://web.de"),
+    spawn(vec![String::from("http://web.de"),
                String::from("http://gmx.de"),
                String::from("http://www.zeit.de/news/index"),
                String::from("http://www.t-online.de/nachrichten/"),
                String::from("http://www.focus.de/"),
-               String::from("http://www.n-tv.de/"),*/
+               String::from("http://www.n-tv.de/"),
                String::from("http://www.weltderwunder.de/"),
-               /*String::from("http://www.zdnet.de/"),
+               String::from("http://www.zdnet.de/"),
                String::from("http://www.it-business.de/"),
                String::from("http://www.cnet.com/news/"),
                String::from("http://www.pcwelt.de/"),
@@ -59,5 +78,5 @@ fn main() {
                String::from("http://golem.de"),
                String::from("http://reddit.com"),
                String::from("http://spieleprogrammierer.de"),
-               String::from("http://forum.dlang.org")*/]);
+               String::from("http://forum.dlang.org")]);
 }

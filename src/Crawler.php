@@ -12,7 +12,7 @@ final class Crawler
 {
     const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
-    const LOG           = true;
+    const LOG           = false;
     const LOG_FILE      = 'log.txt';
 
     /**
@@ -100,7 +100,7 @@ final class Crawler
                 $this->log('Die Seite "%s" hat keinen Content', $url->getUrl());
             }
         } else {
-            $this->log('Die Seite "%s" (childs: %d) wurde nicht verifiziert', $url->getUrl(), $this->countChildsOf($url));
+            $this->log('Die Seite "%s" (childs: %d) wurde bereits besucht', $url->getUrl(), $this->countChildsOf($url));
         }
     }
 

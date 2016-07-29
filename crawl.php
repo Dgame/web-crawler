@@ -9,3 +9,4 @@ list(, $url) = $argv;
 Crawler::Instance()->crawl($url);
 
 print implode(PHP_EOL, Crawler::Instance()->getScannedLinks());
+
