@@ -12,6 +12,14 @@ final class Url
      * @var null|string
      */
     private $url = null;
+    /**
+     * @var null|bool
+     */
+    private $valid = null;
+    /**
+     * @var array
+     */
+    private $matches = [];
 
     /**
      * Url constructor.
@@ -43,7 +51,11 @@ final class Url
      */
     public function isValid() : bool
     {
-        return filter_var($this->url, FILTER_VALIDATE_URL) !== false && $this->match('#mailto#') === false;
+        if ($this->valid === null) {
+            $this->valid = filter_var($this->url, FILTER_VALIDATE_URL) !== false && $this->match('#mailto#') === false;
+        }
+
+        return $this->valid;
     }
 
     /**
@@ -53,7 +65,11 @@ final class Url
      */
     public function match(string $pattern) : bool
     {
-        return preg_match($pattern, $this->url);
+        if (!array_key_exists($pattern, $this->matches)) {
+            $this->matches[$pattern] = preg_match($pattern, $this->url) === 1;
+        }
+
+        return $this->matches[$pattern];
     }
 
     /**

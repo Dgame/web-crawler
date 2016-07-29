@@ -4,29 +4,23 @@ namespace Doody\Crawler;
 
 use DOMDocument;
 use Doody\Crawler\StopWords\StopWordService;
-use PDO;
+use MongoDB\Client;
 
 /**
- * Class Crawler
- * @package Doody\Crawler
+ * Class Crawler.
  */
 final class Crawler
 {
-    const DSN      = 'mysql:dbname=test;host=127.0.0.1';
-    const USER     = 'root';
-    const PASSWORD = '';
-    const LOG      = false;
-    const LOG_FILE = 'log.txt';
+    const DB_NAME       = 'mongodb';
+    const DB_COLLECTION = 'pages';
+    const LOG           = true;
+    const LOG_FILE      = 'log.txt';
 
     /**
      * @var Crawler
      */
     private static $instance = null;
 
-    /**
-     * @var PDO
-     */
-    private $dbh = null;
     /**
      * @var Url|null
      */
@@ -39,11 +33,15 @@ final class Crawler
      * @var array
      */
     private $content = [];
+    /**
+     * @var \MongoDB\Collection
+     */
+    private $collection = null;
 
     /**
      * @return Crawler
      */
-    public static function Instance() : Crawler
+    public static function Instance(): Crawler
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -57,25 +55,29 @@ final class Crawler
      */
     private function __construct()
     {
-        $this->dbh = new PDO(self::DSN, self::USER, self::PASSWORD, [PDO::ATTR_PERSISTENT => true]);
+        $this->collection = (new Client())->selectCollection(self::DB_NAME, self::DB_COLLECTION);
     }
 
     /**
      * @return array
      */
-    public function getScannedLinks() : array
+    public function getScannedLinks(): array
     {
-        return $this->links;
+        return array_unique($this->links);
     }
 
     /**
-     * @param string $format
+     * @param string $input
      * @param array  ...$args
      */
-    public function log(string $format, ...$args)
+    public function log(string $input, ...$args)
     {
         if (self::LOG) {
-            file_put_contents(self::LOG_FILE, vprintf($format, $args) . PHP_EOL, FILE_APPEND);
+            if (!empty($args)) {
+                $input = vsprintf($input, $args);
+            }
+
+            file_put_contents(self::LOG_FILE, $input . PHP_EOL, FILE_APPEND);
         }
     }
 
@@ -89,9 +91,9 @@ final class Crawler
         $this->parentUrl = $url;
         $this->links     = [];
 
-        $this->log('Scanne die Seite "%s"', $url->getUrl());
-
         if ($this->shouldCrawlLink($url)) {
+            $this->log('Scanne die Seite "%s"', $url->getUrl());
+
             $content = $url->getContent();
             if (!empty($content)) {
                 $this->parseDom($content);
@@ -122,16 +124,19 @@ final class Crawler
      */
     private function parseContent(\DOMNodeList $body)
     {
-        $content = strip_tags($body->item(0)->textContent);
-        $words   = preg_split('#\s+#', $content);
-        $words   = array_filter($words, function (string $word) {
-            return preg_match('#[a-z]#i', $word);
-        });
-        $words   = array_map(function (string $word) {
-            return preg_replace('#[^a-z\d]#i', '', $word);
-        }, $words);
+//        $content = strip_tags($body->item(0)->textContent);
+//        $words   = preg_split('#\s+#', $content);
+//        $words   = array_map(function (string $word) {
+//            return preg_replace('#[^\w\d_\.\(\)\[\]\{\}\#\*=\+><\|\$-]#', '', $word);
+//        }, $words);
+//        $words   = array_filter($words, function (string $word) {
+//            return preg_match('#[a-z]+#i', $word);
+//        });
+//        $words   = array_map('trim', $words);
+//
+//        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
 
-        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
+        $this->content = base64_encode(gzdeflate($body->item(0)->textContent, 9));
     }
 
     /**
@@ -143,7 +148,7 @@ final class Crawler
 
         $this->log('Die Seite "%s" hat %d Links', $this->parentUrl->getUrl(), $links->length);
 
-        for ($i = 0; $i < $links->length; $i++) {
+        for ($i = 0; $i < $links->length; ++$i) {
             /** @var \DOMElement $link */
             $link = $links->item($i);
             if ($link->hasAttribute('href')) {
@@ -164,14 +169,13 @@ final class Crawler
      *
      * @return int
      */
-    private function countChildsOf(Url $url) : int
+    private function countChildsOf(Url $url): int
     {
-        $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE parent = ?');
-        if ($stmt->execute([$url->getUrl()])) {
-            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-        }
-
-        return 0;
+        return $this->collection->count(
+            [
+                'in' => ['$elemMatch' => ['$eq' => $url->getUrl()]]
+            ]
+        );
     }
 
     /**
@@ -179,14 +183,14 @@ final class Crawler
      *
      * @return int
      */
-    private function countRelation(Url $url) : int
+    private function countRelation(Url $url): int
     {
-        $stmt = $this->dbh->prepare('SELECT COUNT(id) as count FROM crawler WHERE url = ? AND parent = ?');
-        if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
-            return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
-        }
-
-        return 0;
+        return $this->collection->count(
+            [
+                'url' => $url->getUrl(),
+                'in'  => ['$elemMatch' => ['$eq' => $this->parentUrl->getUrl()]]
+            ]
+        );
     }
 
     /**
@@ -194,7 +198,7 @@ final class Crawler
      *
      * @return bool
      */
-    private function shouldCrawlLink(Url $url) : bool
+    private function shouldCrawlLink(Url $url): bool
     {
         return $url->isValid() && $this->countChildsOf($url) === 0;
     }
@@ -204,7 +208,7 @@ final class Crawler
      *
      * @return bool
      */
-    private function shouldInsertLink(Url $url) : bool
+    private function shouldInsertLink(Url $url): bool
     {
         return $url->isValid() && $this->countRelation($url) === 0;
     }
@@ -214,8 +218,37 @@ final class Crawler
      */
     private function insertLink(Url $url)
     {
-        $stmt = $this->dbh->prepare('INSERT INTO crawler (url, parent) VALUES (?, ?)');
-        if ($stmt->execute([$url->getUrl(), $this->parentUrl->getUrl()])) {
+        $entry = $this->collection->findOne(
+            [
+                'url' => $url->getUrl()
+            ]
+        );
+
+        if ($entry !== null) {
+            $result = $this->collection->updateOne(
+                [
+                    'url' => $url->getUrl()
+                ],
+                [
+                    '$addToSet' => [
+                        'in' => $this->parentUrl->getUrl()
+                    ]
+                ]
+            );
+        } else {
+            $result = $this->collection->insertOne(
+                [
+                    'url'     => $url->getUrl(),
+                    'content' => $this->content,
+                    'pr'      => 0,
+                    'in'      => [
+                        $this->parentUrl->getUrl()
+                    ]
+                ]
+            );
+        }
+
+        if ($result->isAcknowledged()) {
             $this->links[] = $url->getUrl();
         }
     }

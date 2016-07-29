@@ -27,12 +27,7 @@ fn crawl(url: &str) {
 
     println!("Crawl URL : {}", url);
 
-    let output = Command::new("php")
-        .arg("crawl.php")
-        .arg(&url)
-        .output()
-        .unwrap_or_else(|e| panic!("failed to execute child process: {}", e));
-
+    let output = Command::new("php").arg("crawl.php").arg(&url).output().unwrap();
     println!("status: {}", &output.status);
     let output = String::from_utf8_lossy(&output.stdout);
     println!("output: {}", &output);
@@ -47,12 +42,22 @@ fn crawl(url: &str) {
 }
 
 fn main() {
-    spawn(vec![
-        // String::from("http://web.de"),
-               //String::from("http://heise.de"),
-               //String::from("http://golem.de"),
-               //String::from("http://reddit.com"),
+    spawn(vec![String::from("http://web.de"),
+               String::from("http://gmx.de"),
+               String::from("http://www.zeit.de/news/index"),
+               String::from("http://www.t-online.de/nachrichten/"),
+               String::from("http://www.focus.de/"),
+               String::from("http://www.n-tv.de/"),
+               String::from("http://www.weltderwunder.de/"),
+               String::from("http://www.zdnet.de/"),
+               String::from("http://www.it-business.de/"),
+               String::from("http://www.cnet.com/news/"),
+               String::from("http://www.pcwelt.de/"),
+               String::from("http://winfuture.de/"),
+               String::from("http://www.it-times.de/"),
+               String::from("http://heise.de"),
+               String::from("http://golem.de"),
+               String::from("http://reddit.com"),
                String::from("http://spieleprogrammierer.de"),
-               //String::from("http://forum.dlang.org")
-               ]);
+               String::from("http://forum.dlang.org")]);
 }
