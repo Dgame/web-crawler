@@ -136,7 +136,7 @@ final class Crawler
 //
 //        $this->content = StopWordService::Instance()->loadLanguageByURL($this->parentUrl)->removeStopwords($words);
 
-        $this->content = $body->item(0)->textContent;
+        $this->content = base64_encode(gzdeflate($body->item(0)->textContent, 9));
     }
 
     /**
