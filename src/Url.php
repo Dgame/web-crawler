@@ -79,18 +79,4 @@ final class Url
     {
         return $this->url;
     }
-
-    /**
-     * Return the base url of the given url
-     * @return string
-     */
-    public function getBaseUrl() : string
-    {
-        preg_match('#\/+(.+?)\/#i', $this->url, $matches);
-        if (!array_key_exists(1, $matches)) {
-            //TODO: Enforce Kram rein bringen?
-            throw new \Exception('Url with no base url.');
-        }
-        return $matches[1];
-    }
 }
