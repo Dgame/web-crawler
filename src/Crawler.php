@@ -226,6 +226,7 @@ final class Crawler
             $result = $this->collection->insertOne(
                 [
                     'url'     => $url->getUrl(),
+                    'base'    => $url->getBaseUrl(),
                     'content' => $this->content,
                     'pr'      => 0,
                     'in'      => [

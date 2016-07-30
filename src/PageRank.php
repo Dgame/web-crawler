@@ -15,18 +15,38 @@ class PageRank
     {
         $client = new Client();
         $db     = $client->selectDatabase(self::DB_NAME);
+        $db->dropCollection(self::PR_COLLECTION);
         $db->createCollection(self::PR_COLLECTION);
-        $pr_coll = $client->selectCollection(self::DB_NAME, self::PR_COLLECTION);
-        $pages   = $client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
 
-        $cursor = $db->command(
+        $pages_coll = $client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $pr_coll = $client->selectCollection(self::DB_NAME, self::PR_COLLECTION);
+
+        $pages = $pages_coll->aggregate(
             [
-                'mapReduce' => 'pages',
-                'map'       => new Javascript(file_get_contents('src/js/prep_map.js')),
-                'reduce'    => new Javascript(file_get_contents('src/js/prep_reduce.js')),
-                'out'       => self::PR_COLLECTION,
+                [
+                    '$group' => ['_id' => '$base']
+                ]
             ]
         );
+        $count = $pages_coll->aggregate(
+            [
+                [
+                    '$group' => ['_id' => '$base'],
+                ],
+                [
+                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]]
+                ]
+            ]
+        )->toArray()[0]['count'];
+
+        foreach ($pages as $page) {
+            $pr_coll->insertOne(
+                [
+                    '_id' => $page['_id'],
+                    'pr' => 1 / $count,
+                ]
+            );
+        }
     }
 
     public function calculate()
