@@ -46,12 +46,40 @@ class PageRank
             ]
         )->toArray()[0]['count'];
 
+        $outs = $pages_coll->aggregate(
+            [
+                [
+                    '$unwind' => '$in',
+                ],
+                [
+                    '$group' => ['_id' => '$in', 'count'  => ['$sum' => 1]],
+                ]
+            ]
+        );
+
         foreach ($pages as $page) {
             $pr_coll->insertOne(
                 [
                     '_id' => $page['_id'],
                     'in'  => $page['in'],
                     'pr'  => 1 / $count,
+                    //Set pages with no links to N outgoing links. This means
+                    //the page has an even probability to link to each page in
+                    //the entiry web
+                    'out_count' => $count,
+                ]
+            );
+        }
+
+        foreach ($outs as $out) {
+            $pr_coll->updateOne(
+                [
+                    '_id' => $out['_id'],
+                ],
+                [
+                    '$set' => [
+                        'out_count' => $out['count'],
+                    ]
                 ]
             );
         }
