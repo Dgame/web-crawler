@@ -19,13 +19,20 @@ class PageRank
         $db->createCollection(self::PR_COLLECTION);
 
         $pages_coll = $client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
-        $pr_coll = $client->selectCollection(self::DB_NAME, self::PR_COLLECTION);
+        $pr_coll    = $client->selectCollection(self::DB_NAME, self::PR_COLLECTION);
 
         $pages = $pages_coll->aggregate(
             [
                 [
-                    '$group' => ['_id' => '$base']
-                ]
+                    '$unwind' => '$in',
+                ],
+                [
+                    '$group' => [
+                        '_id' => '$base',
+                        'in'  => ['$addToSet' => '$in'],
+                    ],
+                    
+                ],
             ]
         );
         $count = $pages_coll->aggregate(
@@ -34,8 +41,8 @@ class PageRank
                     '$group' => ['_id' => '$base'],
                 ],
                 [
-                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]]
-                ]
+                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]],
+                ],
             ]
         )->toArray()[0]['count'];
 
@@ -43,7 +50,8 @@ class PageRank
             $pr_coll->insertOne(
                 [
                     '_id' => $page['_id'],
-                    'pr' => 1 / $count,
+                    'in'  => $page['in'],
+                    'pr'  => 1 / $count,
                 ]
             );
         }

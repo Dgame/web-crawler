@@ -160,7 +160,7 @@ final class Crawler
     {
         return $this->collection->count(
             [
-                'in' => ['$elemMatch' => ['$eq' => $url->getUrl()]]
+                'in' => ['$elemMatch' => ['$eq' => $url->getBaseUrl()]]
             ]
         );
     }
@@ -175,7 +175,7 @@ final class Crawler
         return $this->collection->count(
             [
                 'url' => $url->getUrl(),
-                'in'  => ['$elemMatch' => ['$eq' => $this->parentUrl->getUrl()]]
+                'in'  => ['$elemMatch' => ['$eq' => $this->parentUrl->getBaseUrl()]]
             ]
         );
     }
@@ -218,7 +218,7 @@ final class Crawler
                 ],
                 [
                     '$addToSet' => [
-                        'in' => $this->parentUrl->getUrl()
+                        'in' => $this->parentUrl->getBaseUrl()
                     ]
                 ]
             );
@@ -226,11 +226,11 @@ final class Crawler
             $result = $this->collection->insertOne(
                 [
                     'url'     => $url->getUrl(),
-                    'base'    => parse_url($url->getUrl(), PHP_URL_HOST),
+                    'base'    => $url->getBaseUrl(),
                     'content' => $this->content,
                     'pr'      => 0,
                     'in'      => [
-                        $this->parentUrl->getUrl()
+                        $this->parentUrl->getBaseUrl()
                     ]
                 ]
             );

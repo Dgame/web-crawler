@@ -79,4 +79,17 @@ final class Url
     {
         return $this->url;
     }
+
+    /**
+     * Return the host part of an url
+     * @return string
+     */
+    public function getBaseUrl()
+    {
+        $base = parse_url($this->url, PHP_URL_HOST);
+        if (substr($base, 0, 4) !== 'www.') {
+            $base = 'www.' . $base;
+        }
+        return $base;
+    }
 }
