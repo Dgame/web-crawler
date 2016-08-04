@@ -4,28 +4,130 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "f05a6cea8bf632e5a29e2c6a3acb526b",
-    "content-hash": "43adaff7f32b150788dfdd428f3d8784",
+    "hash": "9f41454cfbaa69d81c587306c38ce844",
+    "content-hash": "d8cec84a6c35ceb99894fa446a6e2a1e",
     "packages": [
         {
-            "name": "mongodb/mongodb",
-            "version": "1.0.2",
+            "name": "dgame/php-http-client",
+            "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mongodb/mongo-php-library.git",
-                "reference": "faf8a1d86b5c10684ef91fa6c81475b0c7f95240"
+                "url": "https://github.com/Dgame/php-http-client.git",
+                "reference": "e04ff1087ace35d2e9e90d5704fa5a2c037f28e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/faf8a1d86b5c10684ef91fa6c81475b0c7f95240",
-                "reference": "faf8a1d86b5c10684ef91fa6c81475b0c7f95240",
+                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/e04ff1087ace35d2e9e90d5704fa5a2c037f28e9",
+                "reference": "e04ff1087ace35d2e9e90d5704fa5a2c037f28e9",
+                "shasum": ""
+            },
+            "require": {
+                "dgame/php-time": "*",
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.*.*"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ],
+                "psr-4": {
+                    "Dgame\\HttpClient\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Randy Schütt",
+                    "email": "rswhite4@gmail.com"
+                },
+                {
+                    "name": "Marcel Patzwahl",
+                    "email": "marcel.patzwahl@gmail.com"
+                }
+            ],
+            "description": "php http client",
+            "homepage": "https://github.com/php-http-client",
+            "time": "2016-08-04 17:02:37"
+        },
+        {
+            "name": "dgame/php-time",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Dgame/php-time.git",
+                "reference": "6a293d59f4b8c59756a0be95abd3169baa47f67c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Dgame/php-time/zipball/6a293d59f4b8c59756a0be95abd3169baa47f67c",
+                "reference": "6a293d59f4b8c59756a0be95abd3169baa47f67c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.*.*"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ],
+                "files": [
+                    "src/unit/TimeUnit.php"
+                ],
+                "psr-4": {
+                    "Dgame\\Time\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Randy Schütt",
+                    "email": "rswhite4@gmail.com"
+                }
+            ],
+            "description": "php time conversion",
+            "homepage": "https://github.com/php-time",
+            "time": "2016-06-18 15:19:25"
+        },
+        {
+            "name": "mongodb/mongodb",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mongodb/mongo-php-library.git",
+                "reference": "dd7058c93b9fdc875972d0e7c570b6be4373d313"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/dd7058c93b9fdc875972d0e7c570b6be4373d313",
+                "reference": "dd7058c93b9fdc875972d0e7c570b6be4373d313",
                 "shasum": ""
             },
             "require": {
                 "ext-mongodb": "^1.1.0",
                 "php": ">=5.4"
             },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8"
+            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.1.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "MongoDB\\": "src/"
@@ -60,13 +162,15 @@
                 "mongodb",
                 "persistence"
             ],
-            "time": "2016-03-30 19:10:28"
+            "time": "2016-07-27 15:12:47"
         }
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": [],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "dgame/php-http-client": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

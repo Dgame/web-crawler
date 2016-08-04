@@ -1,13 +1,12 @@
 #[allow(dead_code)]
-const LOG_NONE: u32   = 0x0;
-const LOG_SPAWN: u32  = 0x1;
-const LOG_URL: u32    = 0x2;
-const LOG_STATUS: u32 = 0x4;
-const LOG_OUTPUT: u32 = 0x8;
+const LOG_NONE: u8 = 0x0;
+const LOG_SPAWN: u8 = 0x1;
+const LOG_URL: u8 = 0x2;
+const LOG_STATUS: u8 = 0x4;
+const LOG_OUTPUT: u8 = 0x8;
 #[allow(dead_code)]
-const LOG_ALL: u32    = LOG_SPAWN | LOG_URL | LOG_STATUS | LOG_OUTPUT;
-
-const LOG_LEVEL: u32 = LOG_NONE;
+const LOG_ALL: u8 = LOG_SPAWN | LOG_URL | LOG_STATUS | LOG_OUTPUT;
+const LOG_LEVEL: u8 = LOG_NONE;
 const THREAD_NUM: usize = 8;
 
 fn spawn(links: Vec<String>) {
@@ -24,7 +23,6 @@ fn spawn_chunk(chunk: Vec<String>) {
     use std::thread;
 
     let mut threads = vec![];
-
     for url in chunk {
         threads.push(thread::spawn(move || crawl(&url)));
     }
@@ -61,9 +59,10 @@ fn crawl(url: &str) {
 }
 
 fn main() {
-    spawn(vec![String::from("http://web.de"),
-               String::from("http://gmx.de"),
-               String::from("http://www.zeit.de/news/index"),
+    spawn(vec![String::from("http://web.de/"),
+               String::from("http://gmx.de/"),
+               String::from("http://www.wikipedia.org/"),
+               String::from("http://www.zeit.de/news/index/"),
                String::from("http://www.t-online.de/nachrichten/"),
                String::from("http://www.focus.de/"),
                String::from("http://www.n-tv.de/"),
@@ -72,11 +71,11 @@ fn main() {
                String::from("http://www.it-business.de/"),
                String::from("http://www.cnet.com/news/"),
                String::from("http://www.pcwelt.de/"),
-               String::from("http://winfuture.de/"),
+               String::from("http://www.winfuture.de/"),
                String::from("http://www.it-times.de/"),
-               String::from("http://heise.de"),
-               String::from("http://golem.de"),
-               String::from("http://reddit.com"),
-               String::from("http://spieleprogrammierer.de"),
-               String::from("http://forum.dlang.org")]);
+               String::from("http://www.heise.de/"),
+               String::from("http://www.golem.de/"),
+               String::from("http://www.reddit.com/"),
+               String::from("http://www.spieleprogrammierer.de/"),
+               String::from("http://www.dlang.org/")]);
 }

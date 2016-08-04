@@ -1,5 +1,6 @@
 {
     "name": "web/crawler",
+    "minimum-stability": "dev",
     "autoload": {
         "classmap": [
             "src/"
@@ -9,6 +10,7 @@
         }
     },
     "require": {
-        "mongodb/mongodb": "^1.0.0"
+        "mongodb/mongodb": "^1.0.0",
+        "dgame/php-http-client": "dev-master"
     }
 }

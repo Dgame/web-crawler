@@ -1,12 +1,16 @@
 <?php
 
-use Doody\Crawler\Crawler;
+use Doody\Crawler\Logger\FileLogger;
+use Doody\Crawler\Scanner\Scanner;
 
 require_once 'vendor/autoload.php';
 
 list(, $url) = $argv;
 
-Crawler::Instance()->crawl($url);
+//FileLogger::Instance()->disable();
 
-print implode(PHP_EOL, Crawler::Instance()->getScannedLinks());
+$scanner = new Scanner($url);
+
+print implode(PHP_EOL, $scanner->getLinks());
+
 
