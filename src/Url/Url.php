@@ -25,7 +25,7 @@ final class Url
     public function __construct(string $url)
     {
         $url = trim($url);
-        if (!preg_match('#^https?#', $url)) {
+        if (substr($url, 0, 4) !== 'http') {
             $url = sprintf('http://%s', ltrim($url, '/'));
         }
 
@@ -40,7 +40,7 @@ final class Url
     public function isValid() : bool
     {
         if ($this->valid === null) {
-            $this->valid = filter_var($this->url, FILTER_VALIDATE_URL) !== false && !preg_match('#mailto#iS', $this->url);
+            $this->valid = filter_var($this->url, FILTER_VALIDATE_URL) !== false && strpos($this->url, 'mailto') === false;
         }
 
         return $this->valid;
