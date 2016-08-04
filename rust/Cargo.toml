@@ -1,0 +1,11 @@
+[package]
+name = "rust"
+version = "0.1.0"
+authors = ["Randy Schütt <rswhite4@googlemail.com>"]
+
+[dependencies]
+crossbeam = "0.2.9"
+
+[[bin]]
+name = "rust"
+path = "main.rs"
