@@ -1,0 +1,88 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: Helvetica,Verdana,Arial,sans-serif;
+    font-size: 12pt;
+}
+
+#header {
+    background-color: #F1F1F1;
+    border-bottom: 1px solid #E5E5E5;
+    height: 50px;
+    padding-top: 15px;
+}
+
+#header img {
+    width: 100px;
+    padding-left: 15px;
+    float: left;
+}
+
+form#searchbar {
+    padding-left: 125px;
+}
+
+form#searchbar input#search {
+    padding-left: 2px;
+}
+
+form#searchbar input[type=text]:focus::-webkit-input-placeholder {
+    color: transparent;
+}
+
+form#searchbar input[type=text]:focus:-moz-placeholder {
+    color: transparent;
+}
+
+
+/* FF 4-18 */
+
+form#searchbar input[type=text]:focus::-moz-placeholder {
+    color: transparent;
+}
+
+
+/* FF 19+ */
+
+form#searchbar input[type=text]:focus:-ms-input-placeholder {
+    color: transparent;
+}
+
+
+/* IE 10+ */
+
+form#searchbar input[type=text] {
+    width: 30%;
+    height: 28px;
+    padding-left: 5px;
+    float: left;
+}
+
+div#results {
+    width: 40%;
+    margin-left: 125px;
+}
+
+div.result {
+    width: 90%;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    line-height: 25px;
+}
+
+div.result p {
+    font-size: 10pt;
+}
+
+div.result p.link a {
+    font-size: 14pt;
+    color: #1A0DBD;
+    text-decoration: none;
+}
+
+div.result p.url {
+    color: #6F7935;
+}
