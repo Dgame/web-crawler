@@ -18,12 +18,17 @@ final class UrlGuardian
      * @var null|UrlGuardian
      */
     private static $instance = null;
+    /**
+     * @var UrlCache|null
+     */
+    private $cache = null;
 
     /**
      * UrlGuardian constructor.
      */
     private function __construct()
     {
+        $this->cache = new UrlCache();
     }
 
     /**
@@ -45,7 +50,14 @@ final class UrlGuardian
      */
     public function shouldCrawl(Url $url): bool
     {
-        return $url->isValid() && $this->countChildsOf($url) === 0;
+        if ($this->cache->shouldCrawl($url)) {
+            $result = $url->isValid() && $this->countChildsOf($url) === 0;
+            $this->cache->cacheShouldCrawl($url, $result);
+
+            return $result;
+        }
+
+        return false;
     }
 
     /**
@@ -55,7 +67,14 @@ final class UrlGuardian
      */
     public function shouldInsert(Relation $relation): bool
     {
-        return $relation->isValid() && $this->countRelation($relation) === 0;
+        if ($this->cache->shouldInsert($relation)) {
+            $result = $relation->isValid() && $this->countRelation($relation) === 0;
+            $this->cache->cacheShouldInsert($relation, $result);
+
+            return $result;
+        }
+
+        return false;
     }
 
     /**

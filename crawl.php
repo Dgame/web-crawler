@@ -7,10 +7,11 @@ require_once 'vendor/autoload.php';
 
 list(, $url) = $argv;
 
-//FileLogger::Instance()->disable();
+FileLogger::Instance()->disable();
 
-$scanner = new Scanner($url);
+try {
+    $scanner = new Scanner($url);
 
-print implode(PHP_EOL, $scanner->getLinks());
-
-
+    print implode(PHP_EOL, $scanner->getLinks());
+} catch (Throwable $t) {
+}

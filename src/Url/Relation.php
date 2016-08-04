@@ -28,4 +28,12 @@ final class Relation
     {
         return $this->parent->isValid() && $this->child->isValid();
     }
+
+    /**
+     * @return string
+     */
+    public function asString() : string
+    {
+        return sprintf('%s:%s', $this->parent->asString(), $this->child->asString());
+    }
 }
