@@ -77,7 +77,7 @@ final class Scanner
     private function scan()
     {
         $client = new HttpClient();
-        $client->setOption(CURLOPT_VERBOSE, false);
+        $client->verbose(false);
 
         $response = $client->get($this->url->asString())->send();
         if ($response->getStatusCode() < 300) {

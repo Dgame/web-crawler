@@ -2,6 +2,9 @@
 
 namespace Doody\Crawler\Url;
 
+use function Dgame\Iterator\Optional\none;
+use function Dgame\Iterator\Optional\some;
+
 /**
  * Class Url
  * @package Doody\Crawler
@@ -26,10 +29,11 @@ final class Url
     {
         $url = trim($url);
         if (substr($url, 0, 4) !== 'http') {
-            $url = sprintf('http://%s', ltrim($url, '/'));
+            $url = 'http://' . ltrim($url, '/');
         }
 
-        $this->url = $url;
+        $this->url   = $url;
+        $this->valid = none();
     }
 
     /**
@@ -39,11 +43,11 @@ final class Url
      */
     public function isValid() : bool
     {
-        if ($this->valid === null) {
-            $this->valid = filter_var($this->url, FILTER_VALIDATE_URL) !== false && strpos($this->url, 'mailto') === false;
+        if ($this->valid->isNone()) {
+            $this->valid = some(filter_var($this->url, FILTER_VALIDATE_URL) !== false && strpos($this->url, 'mailto') === false);
         }
 
-        return $this->valid;
+        return $this->valid->unwrap();
     }
 
     /**

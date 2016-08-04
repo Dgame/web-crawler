@@ -14,4 +14,5 @@ try {
 
     print implode(PHP_EOL, $scanner->getLinks());
 } catch (Throwable $t) {
+//    print $t;
 }
