@@ -9,17 +9,39 @@ class PageRank
 {
     const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
-    const PR_COLLECTION = 'pr_iteration_0';
+    const PR_COLLECTION = 'pr_iteration_';
 
-    public function prepare()
+    /**
+     * Database Instance where the collections will be placed
+     */
+    private $db;
+
+    public function __construct()
+    {
+        $this->db = (new Client())->selectDatabase(self::DB_NAME);
+    }
+
+    public function calculate(int $iterations)
+    {
+        $this->prepare();
+        for ($i = 0; $i < $iterations; $i++) {
+            $this->iteration($i);
+        }
+    }
+
+    /**
+     * Given the pages collection. Prepare constructs an initial collection 
+     * which is used to perform a pagerank calculation. 
+     */
+    private function prepare()
     {
         $client = new Client();
-        $db     = $client->selectDatabase(self::DB_NAME);
-        $db->dropCollection(self::PR_COLLECTION);
-        $db->createCollection(self::PR_COLLECTION);
+        $initial_coll = self::PR_COLLECTION . 0;
+        $this->db->dropCollection($initial_coll);
+        $this->db->createCollection($initial_coll);
 
         $pages_coll = $client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
-        $pr_coll    = $client->selectCollection(self::DB_NAME, self::PR_COLLECTION);
+        $pr_coll    = $client->selectCollection(self::DB_NAME, $initial_coll);
 
         $pages = $pages_coll->aggregate(
             [
@@ -46,59 +68,111 @@ class PageRank
             ]
         )->toArray()[0]['count'];
 
-        $outs = $pages_coll->aggregate(
+        foreach ($pages as $page) {
+            $page['in'] = $this->filterSelfLinks($page['_id'], $page['in']);
+            $pr_coll->insertOne(
+                [
+                    'in'        => $page['in'],
+                    'value' =>
+                    [
+                        'url'       => $page['_id'],
+                        'pr'        => 1 / $count,
+                        'ps'        => [],
+                    ]
+                ]
+            );
+        }
+
+        $outs = $pr_coll->aggregate(
             [
                 [
                     '$unwind' => '$in',
                 ],
                 [
-                    '$group' => ['_id' => '$in', 'count'  => ['$sum' => 1]],
-                ]
+                    '$group' =>
+                    [
+                        '_id'    => '$in',
+                        'count'  => ['$sum' => 1],
+                        'out'    => ['$addToSet' => '$_id'],
+                    ],
+                ],
             ]
         );
 
-        foreach ($pages as $page) {
-            $pr_coll->insertOne(
-                [
-                    '_id' => $page['_id'],
-                    'in'  => $page['in'],
-                    'pr'  => 1 / $count,
-                    //Set pages with no links to N outgoing links. This means
-                    //the page has an even probability to link to each page in
-                    //the entiry web
-                    'out_count' => $count,
-                ]
-            );
-        }
-
         foreach ($outs as $out) {
+            $ps = $this->mergeValueIntoArray($out['out'], 1 / $out['count']);
             $pr_coll->updateOne(
                 [
-                    '_id' => $out['_id'],
+                    'value.url' => $out['_id'],
                 ],
                 [
                     '$set' => [
-                        'out_count' => $out['count'],
-                    ]
+                        'value.ps'        => $ps,
+                    ],
+                    '$unset' => [
+                        'in' => '',
+                    ],
                 ]
             );
         }
+
+        //$pr_coll->deleteMany(
+            //[
+                //'value.ps' => [],
+            //]
+        //);
+
+
+        $count = $pr_coll->aggregate(
+            [
+                [
+                    '$group' => ['_id' => '$_id'],
+                ],
+                [
+                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]],
+                ],
+            ]
+        )->toArray()[0]['count'];
+
+        $pr_coll->updateMany([],['$set' => ['value.total' => $count]]);
     }
 
-    public function calculate()
+    private function iteration(int $i)
     {
-        $database = (new Client())->selectDatabase('mongodb');
-        $cursor   = $database->command(
+        $cursor   = $this->db->command(
             [
-                'mapReduce' => 'pages',
+                'mapReduce' => self::PR_COLLECTION . $i,
                 'map'       => new Javascript(file_get_contents('src/js/map.js')),
                 'reduce'    => new Javascript(file_get_contents('src/js/reduce.js')),
-                'out'       => 'pr_out',
+                'out'       => self::PR_COLLECTION . ($i + 1),
             ]
         );
+    }
 
-        $resultDocuments = $cursor->toArray();
+    private function mergeValueIntoArray($array, $value)
+    {
+        $result = [];
+        foreach ($array as $entry) {
+            $result[$entry->__toString()] = $value;
+        }
 
-        return $resultDocuments;
+        return $result;
+    }
+
+    private function filterSelfLinks(string $url, \MongoDB\Model\BSONArray $ins)
+    {
+        $array = $ins->getArrayCopy();
+
+        $filtered = array_filter($array, function ($entry) use ($url) {
+            return $url !== $entry;
+        });
+
+        $index  = 0;
+        $result = [];
+        foreach ($filtered as $entry) {
+            $result[] = $entry;
+        }
+
+        return $result;
     }
 }
