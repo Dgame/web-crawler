@@ -3,6 +3,7 @@
 namespace Doody;
 
 use MongoDB\BSON\Javascript;
+use MongoDB\Model\BSONArray;
 use MongoDB\Client;
 
 class PageRank
@@ -16,32 +17,51 @@ class PageRank
      */
     private $db;
 
+    private $client;
+
     public function __construct()
     {
-        $this->db = (new Client())->selectDatabase(self::DB_NAME);
+        $this->client       = new Client();
+        $this->db           = $this->client->selectDatabase(self::DB_NAME);
     }
 
-    public function calculate(int $iterations)
+    public function calculate(float $threshold)
     {
-        $this->prepare();
-        for ($i = 0; $i < $iterations; $i++) {
+        echo 'Prepare initial Graph' . PHP_EOL;
+        $total_nodes = $this->prepare();
+        echo 'Initial Graph with ' . $total_nodes . ' Nodes constructed' . PHP_EOL;
+        $i    = 1;
+        $diff = 0;
+        do {
             $this->iteration($i);
-        }
+            $coll = $this->client->selectCollection(self::DB_NAME, self::PR_COLLECTION . $i);
+            $diff = $coll->aggregate(
+                [
+                    [
+                        '$group' => ['_id' => 1, 'total_diff' => ['$sum' => '$value.diff']]
+                    ]
+                ]
+            )->toArray()[0]['total_diff'];
+            echo 'Iteration: ' . $i . PHP_EOL;
+            echo 'Current average difference: ' . ($diff / $total_nodes) . PHP_EOL;
+            $i++;
+        } while ($diff / $total_nodes > $threshold);
     }
 
     /**
-     * Given the pages collection. Prepare constructs an initial collection 
-     * which is used to perform a pagerank calculation. 
+     * Given the pages collection. Prepare constructs an initial collection
+     * which is used to perform a pagerank calculation.
+     *
+     * @return The total size of the Graph(Nodecount)
      */
     private function prepare()
     {
-        $client = new Client();
         $initial_coll = self::PR_COLLECTION . 0;
         $this->db->dropCollection($initial_coll);
         $this->db->createCollection($initial_coll);
 
-        $pages_coll = $client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
-        $pr_coll    = $client->selectCollection(self::DB_NAME, $initial_coll);
+        $pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $pr_coll    = $this->client->selectCollection(self::DB_NAME, $initial_coll);
 
         $pages = $pages_coll->aggregate(
             [
@@ -73,12 +93,15 @@ class PageRank
             $pr_coll->insertOne(
                 [
                     'in'        => $page['in'],
-                    'value' =>
+                    'value'     =>
                     [
-                        'url'       => $page['_id'],
-                        'pr'        => 1 / $count,
-                        'ps'        => [],
-                    ]
+                        'url'        => $page['_id'],
+                        'pr'         => 1 / $count,
+                        'out'        => [],
+                        'out_count'  => 0,
+                        'diff'       => 0,
+                        'prev_pr'    => 0,
+                    ],
                 ]
             );
         }
@@ -91,9 +114,9 @@ class PageRank
                 [
                     '$group' =>
                     [
-                        '_id'    => '$in',
-                        'count'  => ['$sum' => 1],
-                        'out'    => ['$addToSet' => '$_id'],
+                        '_id'     => '$in',
+                        'count'   => ['$sum' => 1],
+                        'out'     => ['$addToSet' => '$_id'],
                     ],
                 ],
             ]
@@ -107,44 +130,37 @@ class PageRank
                 ],
                 [
                     '$set' => [
-                        'value.ps'        => $ps,
-                    ],
-                    '$unset' => [
-                        'in' => '',
+                        'value.out'           => $ps,
+                        'value.out_count'     => $out['count'],
                     ],
                 ]
             );
         }
 
-        //$pr_coll->deleteMany(
-            //[
-                //'value.ps' => [],
-            //]
-        //);
-
-
-        $count = $pr_coll->aggregate(
+        $total = $pr_coll->aggregate(
             [
                 [
                     '$group' => ['_id' => '$_id'],
                 ],
                 [
-                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]],
+                    '$group' => ['_id' => 1, 'total' => ['$sum' => 1]],
                 ],
             ]
-        )->toArray()[0]['count'];
+        )->toArray()[0]['total'];
 
-        $pr_coll->updateMany([],['$set' => ['value.total' => $count]]);
+        $pr_coll->updateMany([], ['$set' => ['value.total' => $total]]);
+        
+        return $total;
     }
 
     private function iteration(int $i)
     {
         $cursor   = $this->db->command(
             [
-                'mapReduce' => self::PR_COLLECTION . $i,
+                'mapReduce' => self::PR_COLLECTION . ($i - 1),
                 'map'       => new Javascript(file_get_contents('src/js/map.js')),
                 'reduce'    => new Javascript(file_get_contents('src/js/reduce.js')),
-                'out'       => self::PR_COLLECTION . ($i + 1),
+                'out'       => self::PR_COLLECTION . $i,
             ]
         );
     }
@@ -153,13 +169,13 @@ class PageRank
     {
         $result = [];
         foreach ($array as $entry) {
-            $result[$entry->__toString()] = $value;
+            $result[] = $entry->__toString();
         }
 
         return $result;
     }
 
-    private function filterSelfLinks(string $url, \MongoDB\Model\BSONArray $ins)
+    private function filterSelfLinks(string $url, BSONArray $ins)
     {
         $array = $ins->getArrayCopy();
 

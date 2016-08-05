@@ -1,28 +1,37 @@
 function(pageId, values) {
-    var pr = 0
-        , diff = 0
-        , ps = {} 
-        , prevpr = 0 
-        , beta = 0.9
-        , total= 0;
+    var pr = 0,
+        out = [], 
+        out_count = 0,
+        diff = 0,
+        prev_pr = 0,
+        total = 0,
+        url = "";
 
     for (var i in values) {
-        var prevPS = values[i]["ps"];
-        for (var key in prevPS) {
-            ps[key] = prevPS[key];
+        if (!!values[i].url) {
+            url = values[i].url;
         }
-        prevpr += values[i]["prevpr"];
-        pr += values[i]["pr"];
-        total += values[i]["total"];
+        prevOut = values[i].out
+        for (var key in prevOut) {
+            out[key] = prevOut[key];
+        }
+        out_count += values[i].out_count;
+        pr += values[i].pr;
+        prev_pr += values[i].prev_pr;
+        total += values[i].total;
     }
 
-    if (prevpr != 0) {
-        diff = Math.abs(prevpr - pr) / prevpr;
-    }
+    pr = 0.15 / total + 0.85 * pr;
 
-    return {"total" : total
-        , "pr" : pr 
-        , "ps" : ps
-        , "diff": diff
-        , "prevpr" : prevpr};
+    diff = Math.abs(prev_pr - pr);
+
+    return {
+        "total" : total, 
+        "pr" : pr, 
+        "out" : out, 
+        "out_count": out_count,
+        "diff": diff,
+        "prev_pr": prev_pr,
+        "url": url
+    };
 }

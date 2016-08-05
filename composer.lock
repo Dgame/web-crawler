@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "005b1bb664149759513238295a97aebb",
+    "hash": "dadfa9e8ea53910fe28d4cdb18920fa4",
     "content-hash": "c0613e19406c8931696059556a2452de",
     "packages": [
         {
@@ -104,12 +104,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Dgame/php-time.git",
-                "reference": "6a293d59f4b8c59756a0be95abd3169baa47f67c"
+                "reference": "77fef82807db940a3229a26c3ff42de60f91843f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-time/zipball/6a293d59f4b8c59756a0be95abd3169baa47f67c",
-                "reference": "6a293d59f4b8c59756a0be95abd3169baa47f67c",
+                "url": "https://api.github.com/repos/Dgame/php-time/zipball/77fef82807db940a3229a26c3ff42de60f91843f",
+                "reference": "77fef82807db940a3229a26c3ff42de60f91843f",
                 "shasum": ""
             },
             "require": {
@@ -124,7 +124,7 @@
                     "src/"
                 ],
                 "files": [
-                    "src/unit/TimeUnit.php"
+                    "src/Unit/TimeUnit.php"
                 ],
                 "psr-4": {
                     "Dgame\\Time\\": "src/"
@@ -142,7 +142,7 @@
             ],
             "description": "php time conversion",
             "homepage": "https://github.com/php-time",
-            "time": "2016-06-18 15:19:25"
+            "time": "2016-08-05 07:50:08"
         },
         {
             "name": "mongodb/mongodb",

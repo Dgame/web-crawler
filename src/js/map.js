@@ -1,21 +1,47 @@
 function() {
-        for (var toNode in this["value"]["ps"]) {
-            emit(toNode, {total: 0.0
-                      , pr: this["value"]["ps"][toNode] * this["value"]["pr"]
-                      , ps: { }
-                      , diff: 0.0
-                      , prevpr: 0.0});
+    var pr = 0;
+    if (this.value.out_count > 0) {
+        pr = this.value.pr / this.value.out_count;
+    }
+
+    for (var i in this.value.out) {
+        emit(
+            new ObjectId(this.value.out[i]), 
+            {
+                total: 0, 
+                pr: pr, 
+                out: [], 
+                out_count: 0,
+                diff: 0.0,
+                prev_pr: 0.0,
+                url: ""
+            }
+        );
+    }
+
+    emit(
+        this._id, 
+        {
+            total: this.value.total, 
+            pr: 0.0, 
+            out : this.value.out, 
+            out_count: this.value.out_count,
+            diff: this.value.diff,
+            prev_pr: this.value.pr,
+            url: this.value.url
         }
-	
-        emit(this["_id"], {total: this["value"]["total"]
-                       , pr: 0.0
-                       , ps : this["value"]["ps"]
-                       , diff: 0.0
-                       , prevpr: this["value"]["pr"]});
-	
-        emit(this["_id"], {total: 0.0 
-                       , pr: 0.0
-                       , ps : { } 
-                       , diff: 0.0
-                       , prevpr: 0.0});
-};
+    );
+
+    emit(
+        this._id, 
+        {
+            total: 0.0, 
+            pr : 0.0,
+            out : [],
+            out_count: 0,
+            diff : 0.0,
+            prev_pr : 0.0,
+            url: ""
+        }
+    );
+}
