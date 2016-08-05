@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Dgame/php-http-client.git",
-                "reference": "b79d266e18063744dab6d3fefbf0e1c848379936"
+                "reference": "da99197e435f8cdf008f4a9081714f0d36297285"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/b79d266e18063744dab6d3fefbf0e1c848379936",
-                "reference": "b79d266e18063744dab6d3fefbf0e1c848379936",
+                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/da99197e435f8cdf008f4a9081714f0d36297285",
+                "reference": "da99197e435f8cdf008f4a9081714f0d36297285",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,7 @@
             ],
             "description": "php http client",
             "homepage": "https://github.com/php-http-client",
-            "time": "2016-08-04 19:15:43"
+            "time": "2016-08-05 21:14:08"
         },
         {
             "name": "dgame/php-optional",

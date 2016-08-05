@@ -17,9 +17,9 @@ final class Url
      */
     private $base = null;
     /**
-     * @var null|bool
+     * @var bool
      */
-    private $valid = null;
+    private $valid = false;
 
     /**
      * Url constructor.
@@ -28,20 +28,24 @@ final class Url
      */
     public function __construct(string $url)
     {
-        $url = trim($url);
-        if (substr($url, 0, 4) !== 'http') {
-            $url = 'http://' . ltrim($url, '/');
+        if (strlen($url) >= 4 && strpos($url, 'mailto') === false && preg_match('#[a-z]+#iS', $url)) {
+            $url = trim($url);
+            if (substr($url, 0, 4) !== 'http') {
+                $url = 'http://' . ltrim($url, '/');
+            }
+
+            $this->valid = true;//UrlPing::Instance()->isAttainable($url);
+            $this->url   = $url;
+
+            if ($this->valid) {
+                $base = parse_url($url, PHP_URL_HOST);
+                if (substr($base, 0, 4) !== 'www.') {
+                    $base = 'www.' . $base;
+                }
+
+                $this->base = $base;
+            }
         }
-
-        $this->url   = $url;
-        $this->valid = filter_var($url, FILTER_VALIDATE_URL) !== false && strpos($url, 'mailto') === false;
-
-        $base = parse_url($url, PHP_URL_HOST);
-        if (substr($base, 0, 4) !== 'www.') {
-            $base = 'www.' . $base;
-        }
-
-        $this->base = $base;
     }
 
     /**
