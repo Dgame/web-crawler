@@ -1,6 +1,7 @@
 <?php
 
 const DEBUG    = false;
+const VERBOSE  = false;
 const PING_URL = false;
 
 use Doody\Crawler\Logger\FileLogger;
