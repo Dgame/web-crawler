@@ -64,7 +64,7 @@ final class Scanner
         if (UrlGuardian::Instance()->shouldCrawl($this->url)) {
             FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
             $this->scan();
-        } else if (VERBOSE) {
+        } else if (VERBOSE_LOG) {
             FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
                                         $this->url->asString(),
                                         UrlGuardian::Instance()->countChildsOf($this->url));
