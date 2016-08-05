@@ -61,36 +61,25 @@ final class Mongo
      */
     public function insert(Relation $relation, string $content) : bool
     {
-        $entry = $this->collection->findOne(
+        $result = $this->collection->updateOne(
             [
                 'url' => $relation->getChild()->asString()
-            ]
-        );
-
-        if ($entry !== null) {
-            $result = $this->collection->updateOne(
-                [
-                    'url' => $relation->getChild()->asString()
-                ],
-                [
-                    '$addToSet' => [
-                        'in' => $relation->getParent()->getBaseUrl()
-                    ]
-                ]
-            );
-        } else {
-            $result = $this->collection->insertOne(
-                [
+            ],
+            [
+                '$set'      => [
                     'url'     => $relation->getChild()->asString(),
                     'base'    => $relation->getChild()->getBaseUrl(),
                     'content' => $content,
                     'pr'      => 0,
-                    'in'      => [
-                        $relation->getParent()->getBaseUrl()
-                    ]
+                ],
+                '$addToSet' => [
+                    'in' => $relation->getParent()->getBaseUrl()
                 ]
-            );
-        }
+            ],
+            [
+                'upsert' => true
+            ]
+        );
 
         return $result->isAcknowledged();
     }
