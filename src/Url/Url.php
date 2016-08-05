@@ -2,9 +2,6 @@
 
 namespace Doody\Crawler\Url;
 
-use function Dgame\Iterator\Optional\none;
-use function Dgame\Iterator\Optional\some;
-
 /**
  * Class Url
  * @package Doody\Crawler
@@ -15,6 +12,10 @@ final class Url
      * @var null|string
      */
     private $url = null;
+    /**
+     * @var null|string
+     */
+    private $base = null;
     /**
      * @var null|bool
      */
@@ -33,7 +34,14 @@ final class Url
         }
 
         $this->url   = $url;
-        $this->valid = none();
+        $this->valid = filter_var($url, FILTER_VALIDATE_URL) !== false && strpos($url, 'mailto') === false;
+
+        $base = parse_url($url, PHP_URL_HOST);
+        if (substr($base, 0, 4) !== 'www.') {
+            $base = 'www.' . $base;
+        }
+
+        $this->base = $base;
     }
 
     /**
@@ -43,11 +51,7 @@ final class Url
      */
     public function isValid() : bool
     {
-        if ($this->valid->isNone()) {
-            $this->valid = some(filter_var($this->url, FILTER_VALIDATE_URL) !== false && strpos($this->url, 'mailto') === false);
-        }
-
-        return $this->valid->unwrap();
+        return $this->valid;
     }
 
     /**
@@ -62,13 +66,8 @@ final class Url
      * Return the host part of an url
      * @return string
      */
-    public function getBaseUrl()
+    public function getBaseUrl() : string
     {
-        $base = parse_url($this->url, PHP_URL_HOST);
-        if (substr($base, 0, 4) !== 'www.') {
-            $base = 'www.' . $base;
-        }
-
-        return $base;
+        return $this->base;
     }
 }

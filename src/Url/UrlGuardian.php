@@ -19,16 +19,15 @@ final class UrlGuardian
      */
     private static $instance = null;
     /**
-     * @var UrlCache|null
+     * @var array
      */
-    private $cache = null;
+    private $cache = [];
 
     /**
      * UrlGuardian constructor.
      */
     private function __construct()
     {
-        //        $this->cache = new UrlCache();
     }
 
     /**
@@ -50,15 +49,7 @@ final class UrlGuardian
      */
     public function shouldCrawl(Url $url): bool
     {
-        //        if ($this->cache->shouldCrawl($url)) {
-        //            $result = $url->isValid() && $this->countChildsOf($url) === 0;
-        //            $this->cache->cacheShouldCrawl($url, $result);
-        //
-        //            return $result;
-        //        }
-        //
-        //        return false;
-        return $url->isValid() && $this->countChildsOf($url) === 0;
+        return $url->isValid() && !$this->hasChilds($url);
     }
 
     /**
@@ -68,15 +59,47 @@ final class UrlGuardian
      */
     public function shouldInsert(Relation $relation): bool
     {
-        //        if ($this->cache->shouldInsert($relation)) {
-        //            $result = $relation->isValid() && $this->countRelation($relation) === 0;
-        //            $this->cache->cacheShouldInsert($relation, $result);
-        //
-        //            return $result;
-        //        }
-        //
-        //        return false;
-        return $relation->isValid() && $this->countRelation($relation) === 0;
+        return $relation->isValid() && !$this->hasRelations($relation);
+    }
+
+    /**
+     * @param Url $url
+     *
+     * @return bool
+     */
+    public function hasChilds(Url $url) : bool
+    {
+        if (array_key_exists($url->asString(), $this->cache)) {
+            return $this->cache[$url->asString()];
+        }
+
+        if ($this->countChildsOf($url) !== 0) {
+            $this->cache[$url->asString()] = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param Relation $relation
+     *
+     * @return bool
+     */
+    public function hasRelations(Relation $relation) : bool
+    {
+        if (array_key_exists($relation->asString(), $this->cache)) {
+            return $this->cache[$relation->asString()];
+        }
+
+        if ($this->countRelation($relation) !== 0) {
+            $this->cache[$relation->asString()] = true;
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
