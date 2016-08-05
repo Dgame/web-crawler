@@ -28,7 +28,7 @@ final class UrlGuardian
      */
     private function __construct()
     {
-        $this->cache = new UrlCache();
+        //        $this->cache = new UrlCache();
     }
 
     /**
@@ -50,14 +50,15 @@ final class UrlGuardian
      */
     public function shouldCrawl(Url $url): bool
     {
-        if ($this->cache->shouldCrawl($url)) {
-            $result = $url->isValid() && $this->countChildsOf($url) === 0;
-            $this->cache->cacheShouldCrawl($url, $result);
-
-            return $result;
-        }
-
-        return false;
+        //        if ($this->cache->shouldCrawl($url)) {
+        //            $result = $url->isValid() && $this->countChildsOf($url) === 0;
+        //            $this->cache->cacheShouldCrawl($url, $result);
+        //
+        //            return $result;
+        //        }
+        //
+        //        return false;
+        return $url->isValid() && $this->countChildsOf($url) === 0;
     }
 
     /**
@@ -67,14 +68,15 @@ final class UrlGuardian
      */
     public function shouldInsert(Relation $relation): bool
     {
-        if ($this->cache->shouldInsert($relation)) {
-            $result = $relation->isValid() && $this->countRelation($relation) === 0;
-            $this->cache->cacheShouldInsert($relation, $result);
-
-            return $result;
-        }
-
-        return false;
+        //        if ($this->cache->shouldInsert($relation)) {
+        //            $result = $relation->isValid() && $this->countRelation($relation) === 0;
+        //            $this->cache->cacheShouldInsert($relation, $result);
+        //
+        //            return $result;
+        //        }
+        //
+        //        return false;
+        return $relation->isValid() && $this->countRelation($relation) === 0;
     }
 
     /**
