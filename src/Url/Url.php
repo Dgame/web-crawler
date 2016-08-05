@@ -34,7 +34,7 @@ final class Url
                 $url = 'http://' . ltrim($url, '/');
             }
 
-            $this->valid = true;//UrlPing::Instance()->isAttainable($url);
+            $this->valid = !PING_URL ? true : UrlPing::Instance()->isAttainable($url);
             $this->url   = $url;
 
             if ($this->valid) {

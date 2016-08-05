@@ -77,8 +77,8 @@ final class Scanner
     private function scan()
     {
         $client = new HttpClient();
-        $client->setTimeout(seconds(4))
-               ->setConnectionTimeout(seconds(3))
+        $client->setTimeout(seconds(2))
+               ->setConnectionTimeout(seconds(2))
                ->verbose(false);
 
         $response = $client->get($this->url->asString())->send();
@@ -114,7 +114,9 @@ final class Scanner
                     FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
                                                 $relation->getChild()->asString(),
                                                 $relation->getParent()->asString());
-                    Mongo::Instance()->insert($relation, $this->content);
+                    if (!DEBUG) {
+                        Mongo::Instance()->insert($relation, $this->content);
+                    }
                 }
             }
         }

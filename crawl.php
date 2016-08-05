@@ -1,5 +1,8 @@
 <?php
 
+const DEBUG    = false;
+const PING_URL = false;
+
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Scanner\Scanner;
 
@@ -7,12 +10,16 @@ require_once 'vendor/autoload.php';
 
 list(, $url) = $argv;
 
-FileLogger::Instance()->disable();
+if (!DEBUG) {
+    FileLogger::Instance()->disable();
+}
 
 try {
     $scanner = new Scanner($url);
 
     print implode(PHP_EOL, $scanner->getLinks());
 } catch (Throwable $t) {
-//    print $t;
+    if (DEBUG) {
+        print $t;
+    }
 }
