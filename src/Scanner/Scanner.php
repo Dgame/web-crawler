@@ -2,6 +2,7 @@
 
 namespace Doody\Crawler\Scanner;
 
+use Dgame\HttpClient\HttpClient;
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
@@ -75,18 +76,13 @@ final class Scanner
      */
     private function scan()
     {
-        //        $client = new HttpClient();
-        //        $client->verbose(false);
+        $client = new HttpClient();
+        $client->verbose(false);
 
-        //        $response = $client->get($this->url->asString())->send();
-        //        if ($response->getStatusCode() < 300) {
-        //            $doc = new \DOMDocument('1.0', 'utf-8');
-        //            $doc->loadHTML($response->getBody());
-        $content = file_get_contents($this->url->asString());
-        if (!empty($content)) {
+        $response = $client->get($this->url->asString())->send();
+        if ($response->getStatusCode() < 300) {
             $doc = new \DOMDocument('1.0', 'utf-8');
-            $doc->loadHTML($content);
-
+            $doc->loadHTML($response->getBody());
             $this->content = base64_encode(gzdeflate($doc->getElementsByTagName('body')->item(0)->textContent, 9));
 
             $links = $doc->getElementsByTagName('a');
