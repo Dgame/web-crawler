@@ -23,6 +23,10 @@ function(pageId, values) {
 
     pr = 0.15 / total + 0.85 * pr;
 
+    if (pr == Infinity) {
+        pr = 0;
+    }
+
     diff = Math.abs(prev_pr - pr);
 
     return {

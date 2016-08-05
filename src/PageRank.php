@@ -43,6 +43,7 @@ class PageRank
                 ]
             )->toArray()[0]['total_diff'];
             echo 'Iteration: ' . $i . PHP_EOL;
+            echo 'Current total difference: ' . $diff . PHP_EOL;
             echo 'Current average difference: ' . ($diff / $total_nodes) . PHP_EOL;
             $i++;
         } while ($diff / $total_nodes > $threshold);
