@@ -3,6 +3,7 @@
 namespace Doody\Crawler\Pagerank;
 
 use MongoDB\BSON\Javascript;
+use MongoDB\Collection;
 use MongoDB\Model\BSONArray;
 use MongoDB\Client;
 
@@ -23,7 +24,7 @@ class Pagerank
     private $client;
 
     /**
-     * Construct an Instance of the Pagerank CalculatorCalculator. Initialises 
+     * Construct an Instance of the Pagerank CalculatorCalculator. Initialises
      * the client connection and the default database
      */
     public function __construct()
@@ -52,15 +53,14 @@ class Pagerank
             $diff = $coll->aggregate(
                 [
                     [
-                        '$group' => ['_id' => 1, 'total_diff' => ['$sum' => '$value.diff']]
+                        '$group' => ['_id' => 1, 'diff' => ['$avg' => '$value.diff']]
                     ]
                 ]
-            )->toArray()[0]['total_diff'];
+            )->toArray()[0]['diff'];
             echo 'Iteration: ' . $i . PHP_EOL;
-            echo 'Current total difference: ' . $diff . PHP_EOL;
-            echo 'Current average difference: ' . ($diff / $total_nodes) . PHP_EOL;
+            echo 'Current average difference: ' . $diff . PHP_EOL;
             $i++;
-        } while ($diff / $total_nodes > $threshold);
+        } while ($diff > $threshold);
     }
 
     /**
@@ -78,6 +78,7 @@ class Pagerank
         $pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         $pr_coll    = $this->client->selectCollection(self::DB_NAME, $initial_coll);
 
+        //Group by base urls
         $pages = $pages_coll->aggregate(
             [
                 [
@@ -92,16 +93,7 @@ class Pagerank
                 ],
             ]
         );
-        $count = $pages_coll->aggregate(
-            [
-                [
-                    '$group' => ['_id' => '$base'],
-                ],
-                [
-                    '$group' => ['_id' => 'count', 'count' => ['$sum' => 1]],
-                ],
-            ]
-        )->toArray()[0]['count'];
+        $total = $this->total($pages_coll, '$base');
 
         foreach ($pages as $page) {
             $page['in'] = $this->filterSelfLinks($page['_id'], $page['in']);
@@ -111,7 +103,7 @@ class Pagerank
                     'value'     =>
                     [
                         'url'        => $page['_id'],
-                        'pr'         => (1 / $count) * 100,
+                        'pr'         => (1 / $total) * 100,
                         'out'        => [],
                         'out_count'  => 0,
                         'diff'       => 0,
@@ -121,6 +113,7 @@ class Pagerank
             );
         }
 
+        //Aggregate by outgoing links and cound them
         $outs = $pr_coll->aggregate(
             [
                 [
@@ -151,17 +144,7 @@ class Pagerank
                 ]
             );
         }
-
-        $total = $pr_coll->aggregate(
-            [
-                [
-                    '$group' => ['_id' => '$_id'],
-                ],
-                [
-                    '$group' => ['_id' => 1, 'total' => ['$sum' => 1]],
-                ],
-            ]
-        )->toArray()[0]['total'];
+        $total = $this->total($pr_coll, '$_id');
 
         $pr_coll->updateMany([], ['$set' => ['value.total' => $total]]);
         
@@ -184,6 +167,27 @@ class Pagerank
                 'out'       => self::PR_COLLECTION . $i,
             ]
         );
+    }
+
+    /**
+     * Count all documents in a collection, by a given grouping
+     * @param $collection the collecten where the aggregation will be processed
+     * @param string $groupBy the group identifier by which field the 
+     * aggregation should group the collection
+     * @return int the total number of documents after the group
+     */
+    private function total(Collection $collection, string $groupBy)
+    {
+        return $collection->aggregate(
+            [
+                [
+                    '$group' => ['_id' => $groupBy],
+                ],
+                [
+                    '$group' => ['_id' => 1, 'total' => ['$sum' => 1]],
+                ],
+            ]
+        )->toArray()[0]['total'];
     }
 
     private function mergeValueIntoArray($array)

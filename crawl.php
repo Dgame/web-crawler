@@ -1,6 +1,6 @@
 <?php
 
-const DEBUG       = false;
+const DEBUG       = true;
 const VERBOSE_LOG = false;
 const PING_URL    = false;
 
