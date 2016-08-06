@@ -114,7 +114,7 @@ final class Scanner
                     FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
                                                 $relation->getChild()->asString(),
                                                 $relation->getParent()->asString());
-                    if (!DEBUG) {
+                    if (DB_INSERT) {
                         Mongo::Instance()->insert($relation, $this->content);
                     }
                 }

@@ -1,8 +1,9 @@
 <?php
 
-const DEBUG       = true;
+const DEBUG       = false;
 const VERBOSE_LOG = false;
 const PING_URL    = false;
+const DB_INSERT   = true;
 
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Scanner\Scanner;
