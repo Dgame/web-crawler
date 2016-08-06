@@ -50,15 +50,18 @@ final class HttpDispatcher
     private function spawn(string $url)
     {
         $options = [
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_SSL_VERIFYPEER => 1,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_FAILONERROR    => true,
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_VERBOSE        => false,
+            CURLOPT_TIMEOUT        => 2,
+            CURLOPT_CONNECTTIMEOUT => 2,
             CURLOPT_HTTPAUTH       => CURLAUTH_ANY,
             CURLOPT_SSLVERSION     => CURL_SSLVERSION_DEFAULT,
             CURLOPT_MAXREDIRS      => 5,
-            CURLOPT_URL            => $url
+            CURLOPT_URL            => $url,
         ];
 
         $ch = curl_init();
