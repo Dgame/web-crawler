@@ -8,17 +8,6 @@ namespace Doody\Crawler\Http;
  */
 final class HttpDispatcher
 {
-    const DEFAULT_OPTIONS = [
-        CURLOPT_SSL_VERIFYHOST => 0,
-        CURLOPT_SSL_VERIFYPEER => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_FAILONERROR    => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPAUTH       => CURLAUTH_ANY,
-        CURLOPT_SSLVERSION     => CURL_SSLVERSION_DEFAULT,
-        CURLOPT_MAXREDIRS      => 5
-    ];
-
     /**
      * @var null|resource
      */
