@@ -49,7 +49,7 @@ final class UrlGuardian
      */
     public function shouldCrawl(Url $url): bool
     {
-        return $url->isValid() && !$this->hasChilds($url);
+        return !$this->hasChilds($url);
     }
 
     /**
@@ -59,7 +59,7 @@ final class UrlGuardian
      */
     public function shouldInsert(Relation $relation): bool
     {
-        return $relation->isValid() && !$this->hasRelations($relation);
+        return !$this->hasRelations($relation);
     }
 
     /**

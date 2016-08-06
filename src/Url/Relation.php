@@ -22,14 +22,6 @@ final class Relation
     }
 
     /**
-     * @return bool
-     */
-    public function isValid() : bool
-    {
-        return $this->parent->isValid() && $this->child->isValid();
-    }
-
-    /**
      * @return string
      */
     public function asString() : string

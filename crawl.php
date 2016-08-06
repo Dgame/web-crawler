@@ -2,23 +2,32 @@
 
 const DEBUG       = false;
 const VERBOSE_LOG = false;
-const PING_URL    = false;
 
+use Doody\Crawler\Crawler\Crawler;
+use Doody\Crawler\Http\HttpDispatcher;
 use Doody\Crawler\Logger\FileLogger;
-use Doody\Crawler\Scanner\Scanner;
 
 require_once 'vendor/autoload.php';
 
-list(, $url) = $argv;
+list(, $url_list) = $argv;
 
 if (!DEBUG) {
     FileLogger::Instance()->disable();
 }
 
 try {
-    $scanner = new Scanner($url);
+    $links = [];
 
-    print implode(PHP_EOL, $scanner->getLinks());
+    $dispatcher = new HttpDispatcher();
+    $dispatcher->dispatch(
+        array_map('trim', explode(',', $url_list)),
+        function (array $info, string $content) use (&$links) {
+            $crawler = new Crawler($info['url'], $content);
+            $links   = array_merge($links, $crawler->getLinks());
+        }
+    );
+
+    print implode(PHP_EOL, $links);
 } catch (Throwable $t) {
     if (DEBUG) {
         print $t;

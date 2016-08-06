@@ -10,7 +10,6 @@
         }
     },
     "require": {
-        "mongodb/mongodb": "^1.0.0",
-        "dgame/php-http-client": "dev-master"
+        "mongodb/mongodb": "^1.0.0"
     }
 }

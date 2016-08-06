@@ -4,7 +4,7 @@ use crawler::Crawler;
 use crawler::debug::*;
 
 fn main() {
-    let c = Crawler::new(Debug::new(DEBUG_NONE));
+    let c = Crawler::new(Debug::new(DEBUG_ALL));
 
     c.spawn(vec![String::from("http://web.de/"),
                  String::from("http://gmx.de/"),

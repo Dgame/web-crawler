@@ -4,99 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9f41454cfbaa69d81c587306c38ce844",
-    "content-hash": "d8cec84a6c35ceb99894fa446a6e2a1e",
+    "hash": "3acca383fc5325f12e87cad0e99562f1",
+    "content-hash": "bebcbbea6d681d99ec23da19ca03d327",
     "packages": [
-        {
-            "name": "dgame/php-http-client",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Dgame/php-http-client.git",
-                "reference": "0a6af56e7589766294a9757db7a255da39c2a3ea"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/0a6af56e7589766294a9757db7a255da39c2a3ea",
-                "reference": "0a6af56e7589766294a9757db7a255da39c2a3ea",
-                "shasum": ""
-            },
-            "require": {
-                "dgame/php-time": "*",
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "5.*.*"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ],
-                "psr-4": {
-                    "Dgame\\HttpClient\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Randy Schütt",
-                    "email": "rswhite4@gmail.com"
-                }
-            ],
-            "description": "php http client",
-            "homepage": "https://github.com/php-http-client",
-            "time": "2016-08-05 23:59:04"
-        },
-        {
-            "name": "dgame/php-time",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Dgame/php-time.git",
-                "reference": "77fef82807db940a3229a26c3ff42de60f91843f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-time/zipball/77fef82807db940a3229a26c3ff42de60f91843f",
-                "reference": "77fef82807db940a3229a26c3ff42de60f91843f",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "5.*.*"
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "src/"
-                ],
-                "files": [
-                    "src/Unit/TimeUnit.php"
-                ],
-                "psr-4": {
-                    "Dgame\\Time\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Randy Schütt",
-                    "email": "rswhite4@gmail.com"
-                }
-            ],
-            "description": "php time conversion",
-            "homepage": "https://github.com/php-time",
-            "time": "2016-08-05 07:50:08"
-        },
         {
             "name": "mongodb/mongodb",
             "version": "dev-master",
@@ -164,9 +74,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "dgame/php-http-client": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

@@ -5,6 +5,7 @@ extern crate crossbeam;
 use crawler::debug::Debug;
 
 const THREAD_NUM: usize = 8;
+const CHUNK_SIZE: usize = THREAD_NUM * 4;
 
 pub struct Crawler {
     debug: Debug,
@@ -18,7 +19,7 @@ impl Crawler {
     pub fn spawn(&self, links: Vec<String>) {
         self.debug.debug_spawn(format!("Spawn: {:?}", &links));
 
-        for chunk in links.chunks(THREAD_NUM) {
+        for chunk in links.chunks(CHUNK_SIZE) {
             self.spawn_chunk(chunk.to_vec());
         }
     }
@@ -26,17 +27,15 @@ impl Crawler {
     fn spawn_chunk(&self, chunk: Vec<String>) {
         let mut threads = vec![];
         crossbeam::scope(|scope| {
-            for url in chunk {
-                threads.push(scope.spawn(move || self.crawl(&url)));
-            }
+            threads.push(scope.spawn(move || self.crawl(chunk)));
         });
     }
 
-    fn crawl(&self, url: &str) {
+    fn crawl(&self, chunk: Vec<String>) {
         use std::process::Command;
 
-        self.debug.debug_url(format!("Crawl URL : {}", url));
-        let output = Command::new("php").current_dir("../").arg("crawl.php").arg(&url).output().unwrap();
+        self.debug.debug_url(format!("Crawl URL : {:?}", &chunk));
+        let output = Command::new("php").current_dir("../").arg("crawl.php").arg(chunk.join(",")).output().unwrap();
         self.debug.debug_status(format!("status: {}", &output.status));
 
         let output = String::from_utf8_lossy(&output.stdout);

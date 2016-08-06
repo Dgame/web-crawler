@@ -1,20 +1,18 @@
 <?php
 
-namespace Doody\Crawler\Scanner;
+namespace Doody\Crawler\Crawler;
 
-use Dgame\HttpClient\HttpClient;
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
 use Doody\Crawler\Url\Url;
 use Doody\Crawler\Url\UrlGuardian;
-use function Dgame\Time\Unit\seconds;
 
 /**
- * Class Scanner
+ * Class Crawler
  * @package Doody\Crawler\Scanner
  */
-final class Scanner
+final class Crawler
 {
     /**
      * @var Url|null
@@ -36,22 +34,18 @@ final class Scanner
      *
      * @throws \Exception
      */
-    public function __construct(string $url)
+    public function __construct(string $url, string $content)
     {
-        $this->url = new Url($url);
+        $this->url     = new Url($url);
+        $this->content = $content;
 
-        //enforce($this->url->isValid())->orThrow('Invalid URL: ' . $url);
-        if (!$this->url->isValid()) {
-            throw new \Exception('Invalid URL: ' . $url);
-        }
-
-        $this->crawl();
+        $this->verify();
     }
 
     /**
      * @return array
      */
-    public function getLinks(): array
+    public function getLinks() : array
     {
         return $this->links;
     }
@@ -59,11 +53,12 @@ final class Scanner
     /**
      *
      */
-    private function crawl()
+    private function verify()
     {
         if (UrlGuardian::Instance()->shouldCrawl($this->url)) {
             FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
-            $this->scan();
+
+            $this->crawl();
         } else if (VERBOSE_LOG) {
             FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
                                         $this->url->asString(),
@@ -76,26 +71,19 @@ final class Scanner
     /**
      *
      */
-    private function scan()
+    private function crawl()
     {
-        $client = new HttpClient();
-        $client->setTimeout(seconds(2))->setConnectionTimeout(seconds(2))->disable(CURLOPT_VERBOSE);
+        if (preg_match('#<body.*?>(.+?)<\/body>#isS', $this->content, $matches)) {
+            $this->content = base64_encode(gzdeflate($matches[1], 9));
 
-        $response = $client->get($this->url->asString())->send();
-        if ($response->getStatus()->isSuccess()) {
-            if (preg_match('#<body.*?>(.+?)<\/body>#isS', $response->getBody(), $matches)) {
-                $this->content = base64_encode(gzdeflate($matches[1], 9));
-                if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
-                    FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
-                    $this->traverse($matches[1]);
-                } else {
-                    FileLogger::Instance()->log('Die Seite "%s" hat keine Links', $this->url->asString());
-                }
+            if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
+                FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
+                $this->traverse($matches[1]);
             } else {
-                FileLogger::Instance()->log('Die Seite "%s" hat keinen body-Tag', $this->url->asString());
+                FileLogger::Instance()->log('Die Seite "%s" hat keine Links', $this->url->asString());
             }
         } else {
-            FileLogger::Instance()->log('Die Seite "%s" hat keinen Content', $this->url->asString());
+            FileLogger::Instance()->log('Die Seite "%s" hat keinen body-Tag', $this->url->asString());
         }
     }
 
