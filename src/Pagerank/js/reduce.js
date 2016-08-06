@@ -21,11 +21,11 @@ function(pageId, values) {
         total += values[i].total;
     }
 
-    pr = 0.15 / total + 0.85 * pr;
+    pr = (0.15 / total + 0.85 * pr) * 100;
 
-    if (pr == Infinity) {
-        pr = 0;
-    }
+    //if (pr == Infinity) {
+        //pr = 0;
+    //}
 
     diff = Math.abs(prev_pr - pr);
 

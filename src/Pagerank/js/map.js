@@ -1,7 +1,7 @@
 function() {
     var pr = 0;
     if (this.value.out_count > 0) {
-        pr = this.value.pr / this.value.out_count;
+        pr = (this.value.pr / this.value.out_count) * 100;
     }
 
     for (var i in this.value.out) {
