@@ -16,6 +16,10 @@ final class Url
      * @var null|string
      */
     private $base = null;
+    /**
+     * @var bool
+     */
+    private $valid = false;
 
     /**
      * Url constructor.
@@ -24,17 +28,31 @@ final class Url
      */
     public function __construct(string $url)
     {
-        $this->url = trim($url);
-        if (substr($this->url, 0, 4) !== 'http') {
-            $this->url = 'http://' . ltrim($this->url, '/');
-        }
+        // Remove all illegal characters from a url
+        $this->url = filter_var(trim($url), FILTER_SANITIZE_URL);
+        // Validate url
+        if (filter_var($this->url, FILTER_VALIDATE_URL) !== false) {
+            $this->valid = true;
 
-        $base = parse_url($this->url, PHP_URL_HOST);
-        if (substr($base, 0, 4) !== 'www.') {
-            $base = 'www.' . $base;
-        }
+            if (substr($this->url, 0, 4) !== 'http') {
+                $this->url = 'http://' . ltrim($this->url, '/');
+            }
 
-        $this->base = $base;
+            $base = parse_url($this->url, PHP_URL_HOST);
+            if (substr($base, 0, 4) !== 'www.') {
+                $base = 'www.' . $base;
+            }
+
+            $this->base = $base;
+        }
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isValid(): bool
+    {
+        return $this->valid;
     }
 
     /**

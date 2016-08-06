@@ -94,7 +94,7 @@ final class Crawler
     {
         foreach ($hrefs as $href) {
             $url = new Url($href);
-            if (UrlGuardian::Instance()->shouldCrawl($url)) {
+            if ($url->isValid() && UrlGuardian::Instance()->shouldCrawl($url)) {
                 $this->links[] = $url->asString();
 
                 $relation = RelationProcedure::Link($this->url)->with($url);

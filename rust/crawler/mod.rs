@@ -5,7 +5,7 @@ extern crate crossbeam;
 use crawler::debug::Debug;
 
 const THREAD_NUM: usize = 8;
-const CHUNK_SIZE: usize = THREAD_NUM * 4;
+const CHUNK_SIZE: usize = THREAD_NUM;
 
 pub struct Crawler {
     debug: Debug,
@@ -34,8 +34,13 @@ impl Crawler {
     fn crawl(&self, chunk: Vec<String>) {
         use std::process::Command;
 
-        self.debug.debug_url(format!("Crawl URL : {:?}", &chunk));
-        let output = Command::new("php").current_dir("../").arg("crawl.php").arg(chunk.join(",")).output().unwrap();
+        self.debug.debug_url(format!("Crawl: {:?}", &chunk));
+        let output = Command::new("php")
+            .current_dir("../")
+            .arg("crawl.php")
+            .arg(chunk.join(","))
+            .output()
+            .unwrap();
         self.debug.debug_status(format!("status: {}", &output.status));
 
         let output = String::from_utf8_lossy(&output.stdout);

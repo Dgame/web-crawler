@@ -8,6 +8,8 @@ namespace Doody\Crawler\Http;
  */
 final class HttpDispatcher
 {
+    const BATCH_SIZE = 5;
+
     /**
      * @var null|resource
      */
@@ -72,7 +74,7 @@ final class HttpDispatcher
     public function dispatch(array $urls, callable $callback)
     {
         $url_amount   = count($urls);
-        $batch_amount = min($url_amount, 8);
+        $batch_amount = min($url_amount, self::BATCH_SIZE);
         // start the first batch of requests
         for ($i = 0; $i < $batch_amount; $i++) {
             $this->spawn($urls[$i]);
