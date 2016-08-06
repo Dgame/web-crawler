@@ -1,8 +1,8 @@
 <?php
 
-use Doody\PageRank;
+use Doody\Crawler\Pagerank\Pagerank;
 
 require_once 'vendor/autoload.php';
 
-$pr = new PageRank();
+$pr = new Pagerank();
 $pr->calculate(0.00000001);

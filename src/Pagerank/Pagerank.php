@@ -1,12 +1,12 @@
 <?php
 
-namespace Doody;
+namespace Doody\Crawler\Pagerank;
 
 use MongoDB\BSON\Javascript;
 use MongoDB\Model\BSONArray;
 use MongoDB\Client;
 
-class PageRank
+class Pagerank
 {
     const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
@@ -17,14 +17,28 @@ class PageRank
      */
     private $db;
 
+    /**
+     * The MongoDB Client Instance
+     */
     private $client;
 
+    /**
+     * Construct an Instance of the Pagerank CalculatorCalculator. Initialises 
+     * the client connection and the default database
+     */
     public function __construct()
     {
         $this->client       = new Client();
         $this->db           = $this->client->selectDatabase(self::DB_NAME);
     }
 
+    /**
+     * Calculate the Pagerank. First an initial graph is created. Afterwards the
+     * iterative PageRank is applied until the average difference in Pagerank
+     * values is below the given threshold
+     * @param float $threshold The threshold, which causes, if below, the 
+     * abortion of the pagerank algorithm
+     */
     public function calculate(float $threshold)
     {
         echo 'Prepare initial Graph' . PHP_EOL;
@@ -53,7 +67,7 @@ class PageRank
      * Given the pages collection. Prepare constructs an initial collection
      * which is used to perform a pagerank calculation.
      *
-     * @return The total size of the Graph(Nodecount)
+     * @return The total size of the Graph(Node cardinality)
      */
     private function prepare()
     {
@@ -124,7 +138,7 @@ class PageRank
         );
 
         foreach ($outs as $out) {
-            $ps = $this->mergeValueIntoArray($out['out'], 1 / $out['count']);
+            $ps = $this->mergeValueIntoArray($out['out']);
             $pr_coll->updateOne(
                 [
                     'value.url' => $out['_id'],
@@ -154,19 +168,25 @@ class PageRank
         return $total;
     }
 
+    /**
+     * Performs a Pagerank iteration on a given initial graph $i - 1. Calls a 
+     * MapReduce function, which code can be found in the js/ subfolder.
+     * @param int $i the current iteration. Creates a Collection, which ends on
+     * this index.
+     */
     private function iteration(int $i)
     {
         $cursor   = $this->db->command(
             [
                 'mapReduce' => self::PR_COLLECTION . ($i - 1),
-                'map'       => new Javascript(file_get_contents('src/js/map.js')),
-                'reduce'    => new Javascript(file_get_contents('src/js/reduce.js')),
+                'map'       => new Javascript(file_get_contents(dirname(__FILE__) . '/js/map.js')),
+                'reduce'    => new Javascript(file_get_contents(dirname(__FILE__) . '/js/reduce.js')),
                 'out'       => self::PR_COLLECTION . $i,
             ]
         );
     }
 
-    private function mergeValueIntoArray($array, $value)
+    private function mergeValueIntoArray($array)
     {
         $result = [];
         foreach ($array as $entry) {
@@ -176,6 +196,15 @@ class PageRank
         return $result;
     }
 
+    /**
+     * Given a URL and a BSONArray, the function filters all entries which are
+     * the same as $url. Also rearranges the indeces to from any arbitrary order
+     * to a 0..n range(This is a PHP thing)
+     * @param string $url the url against which the array is checked
+     * @param string $ins the array, which will be filtered
+     *
+     * @return a filtered php array with (1..n) indeces
+     */
     private function filterSelfLinks(string $url, BSONArray $ins)
     {
         $array = $ins->getArrayCopy();
