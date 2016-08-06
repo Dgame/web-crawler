@@ -79,9 +79,7 @@ final class Scanner
     private function scan()
     {
         $client = new HttpClient();
-        $client->setTimeout(seconds(2))
-               ->setConnectionTimeout(seconds(2))
-               ->verbose(false);
+        $client->setTimeout(seconds(2))->setConnectionTimeout(seconds(2))->disable(CURLOPT_VERBOSE);
 
         $response = $client->get($this->url->asString())->send();
         if ($response->getStatus()->isSuccess()) {

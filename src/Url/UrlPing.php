@@ -25,8 +25,7 @@ final class UrlPing
     private function __construct()
     {
         $this->client = new HttpClient();
-        $this->client->verbose(false);
-        $this->client->setOption(CURLOPT_NOBODY, true);
+        $this->client->disable(CURLOPT_VERBOSE)->enable(CURLOPT_NOBODY);
     }
 
     /**
