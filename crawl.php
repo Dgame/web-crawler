@@ -2,6 +2,7 @@
 
 const DEBUG       = false;
 const VERBOSE_LOG = false;
+const DB_INSERT   = true;
 
 use Doody\Crawler\Crawler\Crawler;
 use Doody\Crawler\Http\HttpDispatcher;
