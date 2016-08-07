@@ -5,7 +5,7 @@ extern crate crossbeam;
 use crawler::debug::Debug;
 
 const THREAD_NUM: usize = 8;
-const CHUNK_SIZE: usize = THREAD_NUM;
+const SPAWN_SIZE: usize = 1;
 
 pub struct Crawler {
     debug: Debug,
@@ -16,18 +16,20 @@ impl Crawler {
         Crawler { debug: debug }
     }
 
-    pub fn spawn(&self, links: Vec<String>) {
+    pub fn dispatch(&self, links: Vec<String>) {
         self.debug.debug_spawn(format!("Spawn: {:?}", &links));
 
-        for chunk in links.chunks(CHUNK_SIZE) {
-            self.spawn_chunk(chunk.to_vec());
+        for chunk in links.chunks(THREAD_NUM) {
+            self.spawn(chunk.to_vec());
         }
     }
 
-    fn spawn_chunk(&self, chunk: Vec<String>) {
+    fn spawn(&self, links: Vec<String>) {
         let mut threads = vec![];
         crossbeam::scope(|scope| {
-            threads.push(scope.spawn(move || self.crawl(chunk)));
+            for chunk in links.chunks(SPAWN_SIZE) {
+                threads.push(scope.spawn(move || self.crawl(chunk.to_vec())));
+            }
         });
     }
 
@@ -52,6 +54,6 @@ impl Crawler {
             .map(|s| String::from(s))
             .collect();
 
-        self.spawn(links);
+        self.dispatch(links);
     }
 }

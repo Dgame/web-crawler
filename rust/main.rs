@@ -6,7 +6,7 @@ use crawler::debug::*;
 fn main() {
     let c = Crawler::new(Debug::new(DEBUG_NONE));
 
-    c.spawn(vec![String::from("http://web.de/"),
+    c.dispatch(vec![String::from("http://web.de/"),
                  String::from("http://gmx.de/"),
                  String::from("http://www.wikipedia.org/"),
                  String::from("http://www.zeit.de/news/index/"),
