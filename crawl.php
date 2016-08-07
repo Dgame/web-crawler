@@ -1,27 +1,27 @@
 <?php
 
-const DEBUG       = false;
+const LOG         = false;
 const VERBOSE_LOG = false;
-const PING_URL    = false;
+const SHOW_ERRORS = false;
 const DB_INSERT   = true;
 
 use Doody\Crawler\Logger\FileLogger;
-use Doody\Crawler\Scanner\Scanner;
+use Doody\Crawler\Crawler\Crawler;
 
 require_once 'vendor/autoload.php';
 
 list(, $url) = $argv;
 
-if (!DEBUG) {
+if (!LOG) {
     FileLogger::Instance()->disable();
 }
 
 try {
-    $scanner = new Scanner($url);
+    $crawler = new Crawler($url);
 
-    print implode(PHP_EOL, $scanner->getLinks());
+    print implode(PHP_EOL, $crawler->getLinks());
 } catch (Throwable $t) {
-    if (DEBUG) {
+    if (SHOW_ERRORS) {
         print $t;
     }
 }

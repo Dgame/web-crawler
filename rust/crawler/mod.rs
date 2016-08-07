@@ -15,15 +15,15 @@ impl Crawler {
         Crawler { debug: debug }
     }
 
-    pub fn spawn(&self, links: Vec<String>) {
+    pub fn dispatch(&self, links: Vec<String>) {
         self.debug.debug_spawn(format!("Spawn: {:?}", &links));
 
         for chunk in links.chunks(THREAD_NUM) {
-            self.spawn_chunk(chunk.to_vec());
+            self.spawn(chunk.to_vec());
         }
     }
 
-    fn spawn_chunk(&self, chunk: Vec<String>) {
+    fn spawn(&self, chunk: Vec<String>) {
         let mut threads = vec![];
         crossbeam::scope(|scope| {
             for url in chunk {
@@ -48,6 +48,6 @@ impl Crawler {
             .map(|s| String::from(s))
             .collect();
 
-        self.spawn(links);
+        self.dispatch(links);
     }
 }

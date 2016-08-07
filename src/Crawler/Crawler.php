@@ -1,6 +1,6 @@
 <?php
 
-namespace Doody\Crawler\Scanner;
+namespace Doody\Crawler\Crawler;
 
 use Dgame\HttpClient\HttpClient;
 use Doody\Crawler\Logger\FileLogger;
@@ -11,10 +11,10 @@ use Doody\Crawler\Url\UrlGuardian;
 use function Dgame\Time\Unit\seconds;
 
 /**
- * Class Scanner
- * @package Doody\Crawler\Scanner
+ * Class Crawler
+ * @package Doody\Crawler\Crawler
  */
-final class Scanner
+final class Crawler
 {
     /**
      * @var Url|null
@@ -39,12 +39,6 @@ final class Scanner
     public function __construct(string $url)
     {
         $this->url = new Url($url);
-
-        //enforce($this->url->isValid())->orThrow('Invalid URL: ' . $url);
-        if (!$this->url->isValid()) {
-            throw new \Exception('Invalid URL: ' . $url);
-        }
-
         $this->crawl();
     }
 
@@ -63,6 +57,7 @@ final class Scanner
     {
         if (UrlGuardian::Instance()->shouldCrawl($this->url)) {
             FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
+
             $this->scan();
         } else if (VERBOSE_LOG) {
             FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
@@ -87,6 +82,7 @@ final class Scanner
                 $this->content = base64_encode(gzdeflate($matches[1], 9));
                 if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
                     FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
+
                     $this->traverse($matches[1]);
                 } else {
                     FileLogger::Instance()->log('Die Seite "%s" hat keine Links', $this->url->asString());
