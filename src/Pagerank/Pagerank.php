@@ -61,6 +61,12 @@ class Pagerank
             echo 'Current average difference: ' . $diff . PHP_EOL;
             $i++;
         } while ($diff > $threshold);
+        //Reset i to last iteration
+        $i--;
+        echo 'Pagerank calculation finished after ' . $i . ' iterations' . PHP_EOL;
+        echo 'Begin to transfer pagerank values to pages collection' . PHP_EOL;
+        $this->transfer($i);
+        echo 'Transfer finished successfully' . PHP_EOL;
     }
 
     /**
@@ -167,6 +173,30 @@ class Pagerank
                 'out'       => self::PR_COLLECTION . $i,
             ]
         );
+    }
+
+    /**
+     * Transfers the pagerank from the iterations collection to the pages 
+     * collection
+     * @param int $i the iteration from which collection the pageranks
+     * should get taken
+     */
+    public function transfer(int $i)
+    {
+        $pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $pr_coll    = $this->client->selectCollection(self::DB_NAME, self::PR_COLLECTION . $i);
+
+        $docs = $pr_coll->find();
+        foreach ($docs as $doc) {
+            $pages_coll->updateMany(
+                [
+                    'base' => $doc['value']['url'],
+                ],
+                [
+                    '$set' => ['pr' => $doc['value']['pr']]
+                ]
+            );
+        }
     }
 
     /**
