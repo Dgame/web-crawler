@@ -8,6 +8,7 @@ use MongoDB\Collection;
 
 /**
  * Class Mongo
+ *
  * @package Doody\Crawler\Mongo
  */
 final class Mongo
@@ -26,11 +27,27 @@ final class Mongo
     private $collection = null;
 
     /**
+     * @var \MongoDB\Client
+     */
+    private $client;
+
+    /**
+     * @var \MongoDB\Database
+     */
+    private $db;
+
+    /**
      * Mongo constructor.
      */
     private function __construct()
     {
-        $this->collection = (new Client())->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $this->client     = new Client();
+        $this->db         = $this->client->selectDatabase(self::DB_NAME);
+        if ($this->collExists()) {
+            $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        } else {
+            $this->createColl();
+        }
     }
 
     /**
@@ -45,6 +62,25 @@ final class Mongo
         return self::$instance;
     }
 
+    public function createColl()
+    {
+        $this->db->createCollection(self::DB_COLLECTION);
+        $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $this->collection->createIndex(['content' => 'text']);
+    }
+
+    public function collExists()
+    {
+        $cursor = $this->db->listCollections();
+        foreach ($cursor as $coll) {
+            if ($coll->getName() === self::DB_COLLECTION) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @return Collection
      */
@@ -56,7 +92,7 @@ final class Mongo
     /**
      * @param Relation $relation
      * @param string   $content
-     * @param string $lang 
+     * @param string   $lang
      *
      * @return bool
      */
@@ -64,22 +100,22 @@ final class Mongo
     {
         $result = $this->collection->updateOne(
             [
-                'url' => $relation->getChild()->asString()
+                'url' => $relation->getChild()->asString(),
             ],
             [
                 '$set'      => [
-                    'url'     => $relation->getChild()->asString(),
-                    'base'    => $relation->getChild()->getBaseUrl(),
-                    'content' => $content,
+                    'url'      => $relation->getChild()->asString(),
+                    'base'     => $relation->getChild()->getBaseUrl(),
+                    'content'  => $content,
                     'language' => $lang,
-                    'pr'      => 0,
+                    'pr'       => 0,
                 ],
                 '$addToSet' => [
-                    'in' => $relation->getParent()->getBaseUrl()
-                ]
+                    'in' => $relation->getParent()->getBaseUrl(),
+                ],
             ],
             [
-                'upsert' => true
+                'upsert' => true,
             ]
         );
 
