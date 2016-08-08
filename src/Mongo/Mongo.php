@@ -56,10 +56,11 @@ final class Mongo
     /**
      * @param Relation $relation
      * @param string   $content
+     * @param string $lang 
      *
      * @return bool
      */
-    public function insert(Relation $relation, string $content) : bool
+    public function insert(Relation $relation, string $content, string $lang) : bool
     {
         $result = $this->collection->updateOne(
             [
@@ -70,6 +71,7 @@ final class Mongo
                     'url'     => $relation->getChild()->asString(),
                     'base'    => $relation->getChild()->getBaseUrl(),
                     'content' => $content,
+                    'language' => $lang,
                     'pr'      => 0,
                 ],
                 '$addToSet' => [

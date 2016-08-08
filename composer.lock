@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9f41454cfbaa69d81c587306c38ce844",
-    "content-hash": "d8cec84a6c35ceb99894fa446a6e2a1e",
+    "hash": "23592d89235a8aec25e37b2ed4db545b",
+    "content-hash": "d8af7a975122082d4b331767ef52d706",
     "packages": [
         {
             "name": "dgame/php-http-client",
@@ -159,13 +159,63 @@
                 "persistence"
             ],
             "time": "2016-07-27 15:12:47"
+        },
+        {
+            "name": "webmil/text-language-detect",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webmil/text-language-detect.git",
+                "reference": "11a3520b75edc1f8e037bc1dac710ba2352634cd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webmil/text-language-detect/zipball/11a3520b75edc1f8e037bc1dac710ba2352634cd",
+                "reference": "11a3520b75edc1f8e037bc1dac710ba2352634cd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "TextLanguageDetect\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD"
+            ],
+            "authors": [
+                {
+                    "name": "Nicholas Pisarro",
+                    "email": "infinityminusnine+pear@gmail.com"
+                },
+                {
+                    "name": "Popadjuk Oleh",
+                    "email": "superdodman@gmail.com"
+                },
+                {
+                    "name": "Webmil",
+                    "email": "info@webmil.com.ua"
+                }
+            ],
+            "description": "Detects the language of a given piece of text.",
+            "homepage": "http://pear.php.net/package/Text_LanguageDetect",
+            "keywords": [
+                "detect",
+                "language"
+            ],
+            "time": "2014-09-25 20:53:15"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "dgame/php-http-client": 20
+        "dgame/php-http-client": 20,
+        "webmil/text-language-detect": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

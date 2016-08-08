@@ -8,10 +8,12 @@ use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
 use Doody\Crawler\Url\Url;
 use Doody\Crawler\Url\UrlGuardian;
+use TextLanguageDetect\TextLanguageDetect;
 use function Dgame\Time\Unit\seconds;
 
 /**
  * Class Crawler
+ *
  * @package Doody\Crawler\Crawler
  */
 final class Crawler
@@ -24,6 +26,12 @@ final class Crawler
      * @var null
      */
     private $content = null;
+
+    /**
+     * @var null
+     */
+    private $lang = null;
+
     /**
      * @var array
      */
@@ -59,7 +67,7 @@ final class Crawler
             FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
 
             $this->crawl();
-        } else if (VERBOSE_LOG) {
+        } elseif (VERBOSE_LOG) {
             FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
                                         $this->url->asString(),
                                         UrlGuardian::Instance()->countChildsOf($this->url));
@@ -82,7 +90,8 @@ final class Crawler
         $response = $client->get($this->url->asString())->send();
         if ($response->getStatus()->isSuccess()) {
             if (preg_match('#<body.*?>(.+?)<\/body>#isS', $response->getBody(), $matches)) {
-                $this->content = base64_encode(gzdeflate($matches[1], 9));
+                $this->content = $matches[1];
+                $this->lang    = $this->detectLang($matches[1]);
                 if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
                     if (VERBOSE_LOG) {
                         FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
@@ -116,10 +125,25 @@ final class Crawler
                                                 $relation->getChild()->asString(),
                                                 $relation->getParent()->asString());
                     if (DB_INSERT) {
-                        Mongo::Instance()->insert($relation, $this->content);
+                        Mongo::Instance()->insert($relation, $this->content, $this->lang);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    private function detectLang(string $content)
+    {
+        $langDetect = new TextLanguageDetect();
+        $langDetect->setNameMode(2);
+
+        $r = $langDetect->detect($content, 1);
+
+        return empty($r) ? 'en' : array_keys($r)[0];
     }
 }
