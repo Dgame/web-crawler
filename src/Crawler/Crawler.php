@@ -3,12 +3,12 @@
 namespace Doody\Crawler\Crawler;
 
 use Dgame\HttpClient\HttpClient;
+use Doody\Crawler\Language\Language;
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
 use Doody\Crawler\Url\Url;
 use Doody\Crawler\Url\UrlGuardian;
-use TextLanguageDetect\TextLanguageDetect;
 use function Dgame\Time\Unit\seconds;
 
 /**
@@ -23,15 +23,9 @@ final class Crawler
      */
     private $url = null;
     /**
-     * @var null
+     * @var null|string
      */
     private $content = null;
-
-    /**
-     * @var null
-     */
-    private $lang = null;
-
     /**
      * @var array
      */
@@ -91,7 +85,6 @@ final class Crawler
         if ($response->getStatus()->isSuccess()) {
             if (preg_match('#<body.*?>(.+?)<\/body>#isS', $response->getBody(), $matches)) {
                 $this->content = $matches[1];
-                $this->lang    = $this->detectLang($matches[1]);
                 if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
                     if (VERBOSE_LOG) {
                         FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
@@ -125,25 +118,14 @@ final class Crawler
                                                 $relation->getChild()->asString(),
                                                 $relation->getParent()->asString());
                     if (DB_INSERT) {
-                        Mongo::Instance()->insert($relation, $this->content, $this->lang);
+                        Mongo::Instance()->insert(
+                            $relation,
+                            $this->content,
+                            Language::Instance()->detectLanguage($this->content)
+                        );
                     }
                 }
             }
         }
-    }
-
-    /**
-     * @param string $content
-     *
-     * @return string
-     */
-    private function detectLang(string $content)
-    {
-        $langDetect = new TextLanguageDetect();
-        $langDetect->setNameMode(2);
-
-        $r = $langDetect->detect($content, 1);
-
-        return empty($r) ? 'en' : array_keys($r)[0];
     }
 }
