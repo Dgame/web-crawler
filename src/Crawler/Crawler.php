@@ -39,7 +39,7 @@ final class Crawler
     public function __construct(string $url)
     {
         $this->url = new Url($url);
-        $this->crawl();
+        $this->verify();
     }
 
     /**
@@ -53,12 +53,12 @@ final class Crawler
     /**
      *
      */
-    private function crawl()
+    private function verify()
     {
         if (UrlGuardian::Instance()->shouldCrawl($this->url)) {
             FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
 
-            $this->scan();
+            $this->crawl();
         } else if (VERBOSE_LOG) {
             FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
                                         $this->url->asString(),
@@ -71,17 +71,22 @@ final class Crawler
     /**
      *
      */
-    private function scan()
+    private function crawl()
     {
         $client = new HttpClient();
-        $client->setTimeout(seconds(2))->setConnectionTimeout(seconds(2))->disable(CURLOPT_VERBOSE);
+        $client->setTimeout(seconds(2))
+               ->setConnectionTimeout(seconds(2))
+               ->setOption(CURLOPT_ENCODING, '')
+               ->disable(CURLOPT_VERBOSE);
 
         $response = $client->get($this->url->asString())->send();
         if ($response->getStatus()->isSuccess()) {
             if (preg_match('#<body.*?>(.+?)<\/body>#isS', $response->getBody(), $matches)) {
                 $this->content = base64_encode(gzdeflate($matches[1], 9));
                 if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
-                    FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
+                    if (VERBOSE_LOG) {
+                        FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
+                    }
 
                     $this->traverse($matches[1]);
                 } else {
