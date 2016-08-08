@@ -14,12 +14,18 @@ final class Language
      * @var null|Language
      */
     private static $instance = null;
+    /**
+     * @var null|TextLanguageDetect
+     */
+    private $detector = null;
 
     /**
      * Language constructor.
      */
     private function __construct()
     {
+        $this->detector = new TextLanguageDetect();
+        $this->detector->setNameMode(2);
     }
 
     /**
@@ -33,6 +39,7 @@ final class Language
 
         return self::$instance;
     }
+
     /**
      * @param string $content
      *
@@ -40,11 +47,8 @@ final class Language
      */
     public function detectLanguage(string $content)
     {
-        $langDetect = new TextLanguageDetect();
-        $langDetect->setNameMode(2);
+        $lang = $this->detector->detect($content, 1);
 
-        $r = $langDetect->detect($content, 1);
-
-        return empty($r) ? 'en' : array_keys($r)[0];
+        return empty($lang) ? 'en' : array_keys($lang)[0];
     }
 }
