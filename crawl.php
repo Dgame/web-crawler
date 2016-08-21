@@ -1,8 +1,8 @@
 <?php
 
-const LOG         = false;
+const LOG         = true;
 const VERBOSE_LOG = false;
-const SHOW_ERRORS = false;
+const SHOW_ERRORS = true;
 const DB_INSERT   = true;
 
 use Doody\Crawler\Logger\FileLogger;

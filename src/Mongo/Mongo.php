@@ -99,7 +99,7 @@ final class Mongo
      *
      * @return bool
      */
-    public function insert(Relation $relation, string $content, string $lang) : bool
+    public function insert(Relation $relation, string $content, string $title, string $lang) : bool
     {
         $result = $this->collection->updateOne(
             [
@@ -110,6 +110,7 @@ final class Mongo
                     'url'      => $relation->getChild()->asString(),
                     'base'     => $relation->getChild()->getBaseUrl(),
                     'content'  => $content,
+                    'title'    => $title,
                     'language' => $lang,
                     'pr'       => 0,
                 ],
