@@ -3,7 +3,6 @@
 namespace Doody\Crawler\Crawler;
 
 use Dgame\HttpClient\HttpClient;
-use Doody\Crawler\Language\Language;
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
@@ -22,16 +21,6 @@ final class Crawler
      * @var Url|null
      */
     private $url = null;
-    /**
-     * @var null|string
-     */
-    private $content = null;
-
-    /**
-     * @var null|string
-     */
-    private $title = null;
-
     /**
      * @var array
      */
@@ -89,38 +78,18 @@ final class Crawler
 
         $response = $client->get($this->url->asString())->send();
         if ($response->getStatus()->isSuccess()) {
-            if (preg_match('#<body.*?>(.+?)<\/body>#isS', $response->getBody(), $matches)) {
-                $this->content = $matches[1];
-                if (preg_match_all('#<h(\d+).*?>(.*?)<\/h\1>#isS', $this->content, $title_matches)) {
-                    if (array_key_exists(0, $title_matches[2])) {
-                        $this->title = trim(strip_tags($title_matches[2][0]));
-                    } else {
-                        FileLogger::Instance()->log('Die Seite "%s" hat keinen Titel', $this->url->asString());
-                    }
-                }
-                if (preg_match_all('#href="(.+?)"#iS', $matches[1], $matches)) {
-                    if (VERBOSE_LOG) {
-                        FileLogger::Instance()->log('Die Seite "%s" hat %d Links', $this->url->asString(), count($matches[1]));
-                    }
-
-                    $this->traverse($matches[1]);
-                } else {
-                    FileLogger::Instance()->log('Die Seite "%s" hat keine Links', $this->url->asString());
-                }
-            } else {
-                FileLogger::Instance()->log('Die Seite "%s" hat keinen body-Tag', $this->url->asString());
-            }
+            $this->traverse(new Filter($this->url, $response->getBody()));
         } else {
-            FileLogger::Instance()->log('Die Seite "%s" hat keinen Content', $this->url->asString());
+            FileLogger::Instance()->log('Die Seite "%s" gab keinen erfolgreichen Response zurück', $this->url->asString());
         }
     }
 
     /**
-     * @param array $hrefs
+     * @param Filter $filter
      */
-    private function traverse(array $hrefs)
+    private function traverse(Filter $filter)
     {
-        foreach ($hrefs as $href) {
+        foreach ($filter->getHrefs() as $href) {
             $url = new Url($href);
             if (UrlGuardian::Instance()->shouldCrawl($url)) {
                 $this->links[] = $url->asString();
@@ -130,14 +99,9 @@ final class Crawler
                     FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
                                                 $relation->getChild()->asString(),
                                                 $relation->getParent()->asString());
-                    $title = $this->title ?: $relation->getChild()->getBaseUrl();
+
                     if (DB_INSERT) {
-                        Mongo::Instance()->insert(
-                            $relation,
-                            $this->content,
-                            $title,
-                            Language::Instance()->detectLanguage($this->content)
-                        );
+                        Mongo::Instance()->insert($relation, $filter);
                     }
                 }
             }

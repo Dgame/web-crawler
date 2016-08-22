@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Dgame/php-http-client.git",
-                "reference": "4c100a7b8849bf10fc4d44f98218d4839ad6db21"
+                "reference": "9c4d469bf1cba3a377d7e657b20a8046e714f666"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/4c100a7b8849bf10fc4d44f98218d4839ad6db21",
-                "reference": "4c100a7b8849bf10fc4d44f98218d4839ad6db21",
+                "url": "https://api.github.com/repos/Dgame/php-http-client/zipball/9c4d469bf1cba3a377d7e657b20a8046e714f666",
+                "reference": "9c4d469bf1cba3a377d7e657b20a8046e714f666",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,15 @@
             ],
             "description": "php http client",
             "homepage": "https://github.com/php-http-client",
-            "time": "2016-08-06 00:01:44"
+            "keywords": [
+                "Http Connection",
+                "curl",
+                "http",
+                "http client",
+                "request",
+                "response"
+            ],
+            "time": "2016-08-22 13:08:02"
         },
         {
             "name": "dgame/php-time",
@@ -57,12 +65,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Dgame/php-time.git",
-                "reference": "77fef82807db940a3229a26c3ff42de60f91843f"
+                "reference": "8425b7c1425fe7dc4ec4f174e65a83700d05a8f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Dgame/php-time/zipball/77fef82807db940a3229a26c3ff42de60f91843f",
-                "reference": "77fef82807db940a3229a26c3ff42de60f91843f",
+                "url": "https://api.github.com/repos/Dgame/php-time/zipball/8425b7c1425fe7dc4ec4f174e65a83700d05a8f4",
+                "reference": "8425b7c1425fe7dc4ec4f174e65a83700d05a8f4",
                 "shasum": ""
             },
             "require": {
@@ -95,7 +103,14 @@
             ],
             "description": "php time conversion",
             "homepage": "https://github.com/php-time",
-            "time": "2016-08-05 07:50:08"
+            "keywords": [
+                "Time conversion",
+                "clock",
+                "date",
+                "time",
+                "timer"
+            ],
+            "time": "2016-08-11 13:36:05"
         },
         {
             "name": "mongodb/mongodb",
@@ -103,12 +118,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/mongodb/mongo-php-library.git",
-                "reference": "dd7058c93b9fdc875972d0e7c570b6be4373d313"
+                "reference": "38e57b6e4c34cb497154053334f75a24ced4138c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/dd7058c93b9fdc875972d0e7c570b6be4373d313",
-                "reference": "dd7058c93b9fdc875972d0e7c570b6be4373d313",
+                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/38e57b6e4c34cb497154053334f75a24ced4138c",
+                "reference": "38e57b6e4c34cb497154053334f75a24ced4138c",
                 "shasum": ""
             },
             "require": {
@@ -158,7 +173,7 @@
                 "mongodb",
                 "persistence"
             ],
-            "time": "2016-07-27 15:12:47"
+            "time": "2016-08-15 09:07:30"
         },
         {
             "name": "webmil/text-language-detect",

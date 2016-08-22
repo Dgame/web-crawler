@@ -73,7 +73,6 @@ final class FileLogger
             }
 
             $message = sprintf('[%s]: %s', date('d.m.Y H:i:s'), $message);
-
             @file_put_contents($this->logFile, $message . PHP_EOL, FILE_APPEND);
         }
 

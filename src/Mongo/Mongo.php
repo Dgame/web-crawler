@@ -2,6 +2,8 @@
 
 namespace Doody\Crawler\Mongo;
 
+use Doody\Crawler\Crawler\Filter;
+use Doody\Crawler\Language\Language;
 use Doody\Crawler\Url\Relation;
 use MongoDB\Client;
 use MongoDB\Collection;
@@ -17,20 +19,17 @@ final class Mongo
     const DB_COLLECTION = 'pages';
 
     /**
-     * @var null
+     * @var Mongo
      */
     private static $instance = null;
-
     /**
      * @var \MongoDB\Collection
      */
     private $collection = null;
-
     /**
      * @var \MongoDB\Client
      */
     private $client;
-
     /**
      * @var \MongoDB\Database
      */
@@ -41,8 +40,8 @@ final class Mongo
      */
     private function __construct()
     {
-        $this->client     = new Client();
-        $this->db         = $this->client->selectDatabase(self::DB_NAME);
+        $this->client = new Client();
+        $this->db     = $this->client->selectDatabase(self::DB_NAME);
         if ($this->collExists()) {
             $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         } else {
@@ -62,7 +61,10 @@ final class Mongo
         return self::$instance;
     }
 
-    public function createColl()
+    /**
+     *
+     */
+    private function createColl()
     {
         $this->db->createCollection(self::DB_COLLECTION);
         $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
@@ -72,7 +74,10 @@ final class Mongo
         );
     }
 
-    public function collExists()
+    /**
+     * @return bool
+     */
+    private function collExists() : bool
     {
         $cursor = $this->db->listCollections();
         foreach ($cursor as $coll) {
@@ -94,13 +99,13 @@ final class Mongo
 
     /**
      * @param Relation $relation
-     * @param string   $content
-     * @param string   $lang
+     * @param Filter   $filter
      *
      * @return bool
      */
-    public function insert(Relation $relation, string $content, string $title, string $lang) : bool
+    public function insert(Relation $relation, Filter $filter) : bool
     {
+        $title  = $filter->hasTitle() ? $filter->getTitle() : $relation->getChild()->getBaseUrl();
         $result = $this->collection->updateOne(
             [
                 'url' => $relation->getChild()->asString(),
@@ -109,9 +114,9 @@ final class Mongo
                 '$set'      => [
                     'url'      => $relation->getChild()->asString(),
                     'base'     => $relation->getChild()->getBaseUrl(),
-                    'content'  => $content,
+                    'content'  => $filter->getContent(),
                     'title'    => $title,
-                    'language' => $lang,
+                    'language' => Language::Instance()->detectLanguage($filter->getContent()),
                     'pr'       => 0,
                 ],
                 '$addToSet' => [

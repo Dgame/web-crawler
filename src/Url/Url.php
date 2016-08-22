@@ -16,10 +16,6 @@ final class Url
      * @var string
      */
     private $base = '';
-    /**
-     * @var bool
-     */
-    private $valid = false;
 
     /**
      * Url constructor.
@@ -39,8 +35,6 @@ final class Url
             if (substr($this->url, 0, 4) !== 'http') {
                 $this->url = 'http://' . ltrim($this->url, '/');
             }
-
-            $this->valid = true;
         }
     }
 
@@ -51,7 +45,7 @@ final class Url
      */
     public function isValid() : bool
     {
-        return $this->valid;
+        return !empty($this->url);
     }
 
     /**
