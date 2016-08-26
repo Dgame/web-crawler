@@ -1,7 +1,7 @@
 function() {
     var pr = 0;
     if (this.value.out_count > 0) {
-        pr = (this.value.pr / this.value.out_count) * 100;
+        pr = this.value.pr / this.value.out_count;
     }
 
     for (var i in this.value.out) {
@@ -42,6 +42,5 @@ function() {
             diff : 0.0,
             prev_pr : 0.0,
             url: ""
-        }
-    );
+        });
 }

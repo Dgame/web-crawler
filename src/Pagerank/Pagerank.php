@@ -109,7 +109,7 @@ class Pagerank
                     'value'     =>
                     [
                         'url'        => $page['_id'],
-                        'pr'         => (1 / $total) * 100,
+                        'pr'         => 100 / $total,
                         'out'        => [],
                         'out_count'  => 0,
                         'diff'       => 0,

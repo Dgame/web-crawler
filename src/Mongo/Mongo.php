@@ -69,7 +69,8 @@ final class Mongo
         $this->db->createCollection(self::DB_COLLECTION);
         $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         $this->collection->createIndex(
-            ['content' => 'text'],
+            ['_id' => 'hashed'],
+            ['content'          => 'text'],
             ['default_language' => 'en']
         );
     }
