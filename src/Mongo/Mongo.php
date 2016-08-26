@@ -9,9 +9,7 @@ use MongoDB\Client;
 use MongoDB\Collection;
 
 /**
- * Class Mongo
- *
- * @package Doody\Crawler\Mongo
+ * Class Mongo.
  */
 final class Mongo
 {
@@ -69,7 +67,7 @@ final class Mongo
         $this->db->createCollection(self::DB_COLLECTION);
         $this->collection = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         $this->collection->createIndex(
-            ['_id' => 'hashed'],
+            ['_id'              => 'hashed'],
             ['content'          => 'text'],
             ['default_language' => 'en']
         );
@@ -112,7 +110,7 @@ final class Mongo
                 'url' => $relation->getChild()->asString(),
             ],
             [
-                '$set'      => [
+                '$set' => [
                     'url'      => $relation->getChild()->asString(),
                     'base'     => $relation->getChild()->getBaseUrl(),
                     'content'  => $filter->getContent(),
