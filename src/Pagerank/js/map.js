@@ -1,7 +1,10 @@
 function() {
-    var pr = 0;
+    var pr = this.value.pr;
+    //var pr = 0.15 / this.value.total;
+    var out_pr = 0;
     if (this.value.out_count > 0) {
-        pr = this.value.pr / this.value.out_count;
+        out_pr = this.value.pr / this.value.out_count;
+        pr = 0;
     }
 
     for (var i in this.value.out) {
@@ -9,7 +12,7 @@ function() {
             new ObjectId(this.value.out[i]), 
             {
                 total: 0, 
-                pr: pr, 
+                pr: out_pr, 
                 out: [], 
                 out_count: 0,
                 diff: 0.0,
@@ -23,7 +26,7 @@ function() {
         this._id, 
         {
             total: this.value.total, 
-            pr: 0.0, 
+            pr: pr, 
             out : this.value.out, 
             out_count: this.value.out_count,
             diff: this.value.diff,
@@ -31,16 +34,4 @@ function() {
             url: this.value.url
         }
     );
-
-    emit(
-        this._id, 
-        {
-            total: 0.0, 
-            pr : 0.0,
-            out : [],
-            out_count: 0,
-            diff : 0.0,
-            prev_pr : 0.0,
-            url: ""
-        });
 }
