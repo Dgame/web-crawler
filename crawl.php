@@ -26,8 +26,6 @@ try {
 
     register_shutdown_function('shutdown', $crawler);
 
-    exit;
-
     print implode(PHP_EOL, $crawler->getLinks());
 } catch (Throwable $t) {
     if (SHOW_ERRORS) {
