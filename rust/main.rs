@@ -8,19 +8,19 @@ use crawler::Crawler;
 use crawler::debug::*;
 
 fn resume(urls: &mut Vec<String>) {
-    let mut file = match File::open("shutdown.txt") {
+    match File::open("shutdown.txt") {
         Err(_) => {}
         Ok(mut file) => {
             let mut content = String::new();
             match file.read_to_string(&mut content) {
                 Err(_) => {}
                 Ok(_) => {
-                    file.write_all(b"");
+                    let _ = file.write_all(b"");
                     let last_found_urls: Vec<String> = content.lines()
-                        .map(|s| s.trim())
-                        .filter(|s| !s.is_empty())
-                        .map(|s| String::from(s))
-                        .collect();
+                                                              .map(|s| s.trim())
+                                                              .filter(|s| !s.is_empty())
+                                                              .map(|s| String::from(s))
+                                                              .collect();
                     urls.extend_from_slice(&last_found_urls);
                 }
             }
@@ -52,5 +52,6 @@ fn main() {
     urls.push(String::from("http://www.reddit.com/"));
     urls.push(String::from("http://www.spieleprogrammierer.de/"));
     urls.push(String::from("http://www.dlang.org/"));
+
     crawler.dispatch(urls);
 }

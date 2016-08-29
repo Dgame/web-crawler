@@ -19,11 +19,11 @@ impl Crawler {
         self.debug.debug_spawn(format!("Spawn: {:?}", &links));
 
         for chunk in links.chunks(THREAD_NUM) {
-            self.spawn(chunk.to_vec());
+            self.spawn(&chunk);
         }
     }
 
-    fn spawn(&self, chunk: Vec<String>) {
+    fn spawn(&self, chunk: &[String]) {
         let mut threads = vec![];
         crossbeam::scope(|scope| {
             for url in chunk {
@@ -37,17 +37,17 @@ impl Crawler {
 
         self.debug.debug_url(format!("Crawl URL : {}", url));
         let output =
-            Command::new("php").current_dir("../").arg("crawl.php").arg(&url).output().unwrap();
+        Command::new("php").current_dir("../").arg("crawl.php").arg(&url).output().unwrap();
         self.debug.debug_status(format!("status: {}", &output.status));
 
         let output = String::from_utf8_lossy(&output.stdout);
         self.debug.debug_output(format!("output: {}", &output));
 
         let links: Vec<String> = output.lines()
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(|s| String::from(s))
-            .collect();
+                                       .map(|s| s.trim())
+                                       .filter(|s| !s.is_empty())
+                                       .map(|s| String::from(s))
+                                       .collect();
 
         self.dispatch(links);
     }

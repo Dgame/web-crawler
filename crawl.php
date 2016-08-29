@@ -1,6 +1,6 @@
 <?php
 
-const LOG         = true;
+const LOG         = false;
 const VERBOSE_LOG = false;
 const SHOW_ERRORS = true;
 const DB_INSERT   = true;
