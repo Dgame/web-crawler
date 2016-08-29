@@ -24,7 +24,7 @@ if (!LOG) {
 try {
     $crawler = new Crawler($url);
 
-    register_shutdown_function('shutdown', $crawler);
+//    register_shutdown_function('shutdown', $crawler);
 
     print implode(PHP_EOL, $crawler->getLinks());
 } catch (Throwable $t) {
