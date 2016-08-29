@@ -12,7 +12,7 @@ require_once 'vendor/autoload.php';
 
 function shutdown(Crawler $crawler)
 {
-    file_put_contents(dirname(__FILE__) . '/rust/shutdown.txt', $crawler->getLinks(), FILE_APPEND);
+    file_put_contents(dirname(__FILE__) . '/rust/shutdown.txt', implode(PHP_EOL, $crawler->getLinks()), FILE_APPEND);
 }
 
 list(, $url) = $argv;
