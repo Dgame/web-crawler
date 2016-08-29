@@ -10,6 +10,11 @@ use Doody\Crawler\Crawler\Crawler;
 
 require_once 'vendor/autoload.php';
 
+function shutdown(Crawler $crawler)
+{
+    file_put_contents(getcwd() . '/rust/shutdown.txt', $crawler->getLinks(), FILE_APPEND);
+}
+
 list(, $url) = $argv;
 
 if (!LOG) {
@@ -18,6 +23,10 @@ if (!LOG) {
 
 try {
     $crawler = new Crawler($url);
+
+    register_shutdown_function('shutdown', $crawler);
+
+    exit;
 
     print implode(PHP_EOL, $crawler->getLinks());
 } catch (Throwable $t) {

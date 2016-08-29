@@ -8,7 +8,7 @@ pub const DEBUG_OUTPUT: u8 = 0x8;
 pub const DEBUG_ALL: u8 = DEBUG_SPAWN | DEBUG_URL | DEBUG_STATUS | DEBUG_OUTPUT;
 
 pub struct Debug {
-    debug_level: u8
+    debug_level: u8,
 }
 
 impl Debug {
