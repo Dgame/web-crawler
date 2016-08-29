@@ -1,9 +1,9 @@
 function(pageId, values) {
-    var pr = 0,
+    var pr = 0.0,
         out = [], 
         out_count = 0,
-        diff = 0,
-        prev_pr = 0,
+        diff = 0.0,
+        prev_pr = 0.0,
         total = 0,
         url = "";
 
@@ -21,11 +21,11 @@ function(pageId, values) {
         total += values[i].total;
     }
 
-    pr = 0.15 / total + 0.85 * pr;
+    pr = 0.15 + 0.85 * pr;
 
-    if (pr == Infinity) {
-        pr = 0;
-    }
+    //if (pr == Infinity) {
+        //pr = 5e-324;
+    //}
 
     diff = Math.abs(prev_pr - pr);
 

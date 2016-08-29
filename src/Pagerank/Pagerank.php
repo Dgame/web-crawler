@@ -12,6 +12,7 @@ class Pagerank
     const DB_NAME       = 'mongodb';
     const DB_COLLECTION = 'pages';
     const PR_COLLECTION = 'pr_iteration_';
+    const BULK_SIZE = 5000;
 
     /**
      * Database Instance where the collections will be placed
@@ -24,6 +25,11 @@ class Pagerank
     private $client;
 
     /**
+     * The pages Collection Cursor
+     */
+    private $pages_coll;
+
+    /**
      * Construct an Instance of the Pagerank CalculatorCalculator. Initialises
      * the client connection and the default database
      */
@@ -31,20 +37,22 @@ class Pagerank
     {
         $this->client       = new Client();
         $this->db           = $this->client->selectDatabase(self::DB_NAME);
+        $this->pages_coll   = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
     }
 
     /**
      * Calculate the Pagerank. First an initial graph is created. Afterwards the
      * iterative PageRank is applied until the average difference in Pagerank
      * values is below the given threshold
+     *
      * @param float $threshold The threshold, which causes, if below, the 
-     * abortion of the pagerank algorithm
+     *                         abortion of the pagerank algorithm
      */
     public function calculate(float $threshold)
     {
         echo 'Prepare initial Graph' . PHP_EOL;
-        $total_nodes = $this->prepare();
-        echo 'Initial Graph with ' . $total_nodes . ' Nodes constructed' . PHP_EOL;
+        $this->prepare();
+        echo 'Initial Graph with Nodes constructed' . PHP_EOL;
         $i    = 1;
         $diff = 0;
         do {
@@ -53,8 +61,8 @@ class Pagerank
             $diff = $coll->aggregate(
                 [
                     [
-                        '$group' => ['_id' => 1, 'diff' => ['$avg' => '$value.diff']]
-                    ]
+                        '$group' => ['_id' => 1, 'diff' => ['$avg' => '$value.diff']],
+                    ],
                 ]
             )->toArray()[0]['diff'];
             echo 'Iteration: ' . $i . PHP_EOL;
@@ -81,45 +89,37 @@ class Pagerank
         $this->db->dropCollection($initial_coll);
         $this->db->createCollection($initial_coll);
 
-        $pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         $pr_coll    = $this->client->selectCollection(self::DB_NAME, $initial_coll);
 
-        //Group by base urls
-        $pages = $pages_coll->aggregate(
-            [
-                [
-                    '$unwind' => '$in',
-                ],
-                [
-                    '$group' => [
-                        '_id' => '$base',
-                        'in'  => ['$addToSet' => '$in'],
-                    ],
-                    
-                ],
-            ]
-        );
-        $total = $this->total($pages_coll, '$base');
-
+        $pages = $this->getAllPages();
+        $total = $this->total($this->pages_coll, '$base');
+        $bulk = [];
         foreach ($pages as $page) {
             $page['in'] = $this->filterSelfLinks($page['_id'], $page['in']);
-            $pr_coll->insertOne(
+            $bulk[] = [
+                'in'        => $page['in'],
+                'value'     =>
                 [
-                    'in'        => $page['in'],
-                    'value'     =>
-                    [
-                        'url'        => $page['_id'],
-                        'pr'         => 1 / $total,
-                        'out'        => [],
-                        'out_count'  => 0,
-                        'diff'       => 0,
-                        'prev_pr'    => 0,
-                    ],
-                ]
-            );
+                    'url'        => $page['_id'],
+                    'pr'         => 1,
+                    'out'        => [],
+                    'out_count'  => 0,
+                    'diff'       => 0,
+                    'prev_pr'    => 0,
+                ],
+            ];
+
+            if (count($bulk) % self::BULK_SIZE === 0) {
+                $pr_coll->insertMany($bulk);
+                $bulk = [];
+            }
+        }
+        //Insert the rest
+        if (count($bulk) > 0) {
+            $pr_coll->insertMany($bulk);
         }
 
-        //Aggregate by outgoing links and cound them
+        //Aggregate by outgoing links and count them
         $outs = $pr_coll->aggregate(
             [
                 [
@@ -150,18 +150,66 @@ class Pagerank
                 ]
             );
         }
-        $total = $this->total($pr_coll, '$_id');
 
-        $pr_coll->updateMany([], ['$set' => ['value.total' => $total]]);
-        
-        return $total;
+        $no_outs = $pr_coll->find(
+            ['value.out_count' => 0]
+        );
+
+        //If there are no outgoing links, do backlinks to the ingoing pages
+        foreach ($no_outs as $no_out) {
+            $length = 0;
+            $in_arr = [];
+            foreach ($no_out['in'] as $in) {
+                $doc = $pr_coll->findOne(['value.url' => $in]);
+                if ($doc !== null) {
+                    $in_arr[] = $doc['_id']->__toString();
+                    $length++;
+                } 
+            }
+            if ($length > 0) {
+                $pr_coll->updateOne(
+                    [
+                        '_id' => $no_out['_id']
+                    ],
+                    [
+                        '$set' => [
+                            'value.out'           => $in_arr,
+                            'value.out_count'     => $length,
+                        ],
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
+     * Return all pages of the pages collection that have a different base url
+     * @return Cursor
+     */
+    private function getAllPages()
+    {
+        return $this->pages_coll->aggregate(
+            [
+                [
+                    '$unwind' => '$in',
+                ],
+                [
+                    '$group' => [
+                        '_id' => '$base',
+                        'in'  => ['$addToSet' => '$in'],
+                    ],
+                    
+                ],
+            ]
+        );
     }
 
     /**
      * Performs a Pagerank iteration on a given initial graph $i - 1. Calls a 
      * MapReduce function, which code can be found in the js/ subfolder.
+     *
      * @param int $i the current iteration. Creates a Collection, which ends on
-     * this index.
+     *               this index.
      */
     private function iteration(int $i)
     {
@@ -178,22 +226,22 @@ class Pagerank
     /**
      * Transfers the pagerank from the iterations collection to the pages 
      * collection
+     *
      * @param int $i the iteration from which collection the pageranks
-     * should get taken
+     *               should get taken
      */
     public function transfer(int $i)
     {
-        $pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
         $pr_coll    = $this->client->selectCollection(self::DB_NAME, self::PR_COLLECTION . $i);
 
         $docs = $pr_coll->find();
         foreach ($docs as $doc) {
-            $pages_coll->updateMany(
+            $this->pages_coll->updateMany(
                 [
                     'base' => $doc['value']['url'],
                 ],
                 [
-                    '$set' => ['pr' => $doc['value']['pr']]
+                    '$set' => ['pr' => $doc['value']['pr']],
                 ]
             );
         }
@@ -201,9 +249,11 @@ class Pagerank
 
     /**
      * Count all documents in a collection, by a given grouping
+     *
      * @param $collection the collecten where the aggregation will be processed
      * @param string $groupBy the group identifier by which field the 
-     * aggregation should group the collection
+     *                        aggregation should group the collection
+     *
      * @return int the total number of documents after the group
      */
     private function total(Collection $collection, string $groupBy)
@@ -234,6 +284,7 @@ class Pagerank
      * Given a URL and a BSONArray, the function filters all entries which are
      * the same as $url. Also rearranges the indeces to from any arbitrary order
      * to a 0..n range(This is a PHP thing)
+     *
      * @param string $url the url against which the array is checked
      * @param string $ins the array, which will be filtered
      *
