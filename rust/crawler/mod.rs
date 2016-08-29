@@ -40,7 +40,11 @@ impl Crawler {
         use std::process::Command;
 
         self.debug.debug_url(format!("Crawl URL : {}", &url));
-        let output = Command::new("php").current_dir("../").arg("crawl.php").arg(&url).output().unwrap();
+        let output = Command::new("php").current_dir("../")
+                                        .arg("crawl.php")
+                                        .arg(&url)
+                                        .output()
+                                        .unwrap();
         self.debug.debug_status(format!("status: {}", &output.status));
 
         let output = String::from_utf8_lossy(&output.stdout);
