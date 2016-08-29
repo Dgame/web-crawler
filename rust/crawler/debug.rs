@@ -7,6 +7,7 @@ pub const DEBUG_OUTPUT: u8 = 0x8;
 #[allow(dead_code)]
 pub const DEBUG_ALL: u8 = DEBUG_SPAWN | DEBUG_URL | DEBUG_STATUS | DEBUG_OUTPUT;
 
+#[derive(Clone)]
 pub struct Debug {
     debug_level: u8,
 }

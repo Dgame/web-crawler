@@ -1,11 +1,12 @@
 pub mod debug;
 
-extern crate crossbeam;
-
+//extern crate crossbeam;
+use std::thread;
 use crawler::debug::Debug;
 
 const THREAD_NUM: usize = 8;
 
+#[derive(Clone)]
 pub struct Crawler {
     debug: Debug,
 }
@@ -19,23 +20,21 @@ impl Crawler {
         self.debug.debug_spawn(format!("Spawn: {:?}", &links));
 
         for chunk in links.chunks(THREAD_NUM) {
-            self.spawn(&chunk);
+            self.spawn(chunk.to_vec());
         }
     }
 
-    fn spawn(&self, chunk: &[String]) {
-        let mut threads = vec![];
-        crossbeam::scope(|scope| {
-            for url in chunk {
-                threads.push(scope.spawn(move || self.crawl(&url)));
-            }
-        });
+    fn spawn(&self, chunk: Vec<String>) {
+        for url in chunk {
+            let clone = self.clone();
+            thread::spawn(move || clone.crawl(&url));
+        }
     }
 
     fn crawl(&self, url: &str) {
         use std::process::Command;
 
-        self.debug.debug_url(format!("Crawl URL : {}", url));
+        self.debug.debug_url(format!("Crawl URL : {}", &url));
         let output =
         Command::new("php").current_dir("../").arg("crawl.php").arg(&url).output().unwrap();
         self.debug.debug_status(format!("status: {}", &output.status));
