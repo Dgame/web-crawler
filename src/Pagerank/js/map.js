@@ -9,8 +9,7 @@ function() {
                 out: [], 
                 out_count: 0,
                 diff: 0.0,
-                prev_pr: 0.0,
-                url: ""
+                prev_pr: 0.0
             }
         );
     }
@@ -22,8 +21,7 @@ function() {
             out : this.value.out, 
             out_count: this.value.out_count,
             diff: this.value.diff,
-            prev_pr: this.value.pr,
-            url: this.value.url
+            prev_pr: this.value.pr
         }
     );
 }

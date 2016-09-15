@@ -119,7 +119,7 @@ final class Mongo
                     'pr'       => 0,
                 ],
                 '$addToSet' => [
-                    'in' => $relation->getParent()->getBaseUrl(),
+                    'in' => $relation->getParent()->asString(),
                 ],
             ],
             [
