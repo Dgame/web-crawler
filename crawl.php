@@ -1,10 +1,12 @@
 <?php
 
-const LOG         = false;
-const VERBOSE_LOG = false;
-const SHOW_ERRORS = true;
-const DB_INSERT   = true;
+const LOG           = false;
+const VERBOSE_LOG   = false;
+const SHOW_ERRORS   = true;
+const DB_INSERT     = true;
+const DB_BULK_LIMIT = 1000;
 
+use Doody\Crawler\Crawler\DataRecorder;
 use Doody\Crawler\Logger\FileLogger;
 use Doody\Crawler\Crawler\Crawler;
 
@@ -24,7 +26,9 @@ if (!LOG) {
 try {
     $crawler = new Crawler($url);
 
-//    register_shutdown_function('shutdown', $crawler);
+    DataRecorder::Instance()->apply();
+
+    //    register_shutdown_function('shutdown', $crawler);
 
     print implode(PHP_EOL, $crawler->getLinks());
 } catch (Throwable $t) {

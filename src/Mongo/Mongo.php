@@ -19,11 +19,11 @@ final class Mongo
     /**
      * @var Mongo
      */
-    private static $instance = null;
+    private static $instance;
     /**
      * @var \MongoDB\Collection
      */
-    private $collection = null;
+    private $collection;
     /**
      * @var \MongoDB\Client
      */

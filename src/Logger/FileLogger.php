@@ -11,7 +11,7 @@ final class FileLogger
     /**
      * @var null|FileLogger
      */
-    private static $instance = null;
+    private static $instance;
     /**
      * @var string
      */

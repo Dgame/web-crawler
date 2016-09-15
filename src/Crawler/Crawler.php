@@ -4,10 +4,8 @@ namespace Doody\Crawler\Crawler;
 
 use Dgame\HttpClient\HttpClient;
 use Doody\Crawler\Logger\FileLogger;
-use Doody\Crawler\Mongo\Mongo;
 use Doody\Crawler\Url\RelationProcedure;
 use Doody\Crawler\Url\Url;
-use Doody\Crawler\Url\UrlGuardian;
 use function Dgame\Time\Unit\seconds;
 
 /**
@@ -35,8 +33,10 @@ final class Crawler
      */
     public function __construct(string $url)
     {
+        FileLogger::Instance()->log('Crawle die Seite "%s"', $url);
+
         $this->url = new Url($url);
-        $this->verify();
+        $this->crawl();
     }
 
     /**
@@ -45,24 +45,6 @@ final class Crawler
     public function getLinks(): array
     {
         return $this->links;
-    }
-
-    /**
-     *
-     */
-    private function verify()
-    {
-        if (UrlGuardian::Instance()->shouldCrawl($this->url)) {
-            FileLogger::Instance()->log('Scanne die Seite "%s"', $this->url->asString());
-
-            $this->crawl();
-        } elseif (VERBOSE_LOG) {
-            FileLogger::Instance()->log('Die Seite "%s" (childs: %d) wurde bereits besucht',
-                                        $this->url->asString(),
-                                        UrlGuardian::Instance()->countChildsOf($this->url));
-        } else {
-            FileLogger::Instance()->log('Die Seite "%s" wurde bereits besucht', $this->url->asString());
-        }
     }
 
     /**
@@ -90,21 +72,14 @@ final class Crawler
     private function traverse(Filter $filter)
     {
         foreach ($filter->getHrefs() as $href) {
-            $url = new Url($href);
-            if (UrlGuardian::Instance()->shouldCrawl($url)) {
-                $this->links[] = $url->asString();
+            $url           = new Url($href);
+            $this->links[] = $url->asString();
 
-                $relation = RelationProcedure::Link($this->url)->with($url);
-                if (UrlGuardian::Instance()->shouldInsert($relation)) {
-                    FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
-                                                $relation->getChild()->asString(),
-                                                $relation->getParent()->asString());
-
-                    if (DB_INSERT) {
-                        Mongo::Instance()->insert($relation, $filter);
-                    }
-                }
-            }
+            $relation = RelationProcedure::Link($this->url)->with($url);
+            FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
+                                        $relation->getChild()->asString(),
+                                        $relation->getParent()->asString());
+            DataRecorder::Instance()->append($relation, $filter);
         }
     }
 }

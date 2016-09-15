@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "fbd0a93d961553457b66a1d14b56fbf2",
-    "content-hash": "d8af7a975122082d4b331767ef52d706",
+    "hash": "a9beed0cef441352ee8bdbac756fb4b7",
+    "content-hash": "95030f584803577f20f1b28d389f850e",
     "packages": [
         {
             "name": "dgame/php-http-client",
@@ -111,69 +111,6 @@
                 "timer"
             ],
             "time": "2016-08-11 13:36:05"
-        },
-        {
-            "name": "mongodb/mongodb",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/mongodb/mongo-php-library.git",
-                "reference": "38e57b6e4c34cb497154053334f75a24ced4138c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/38e57b6e4c34cb497154053334f75a24ced4138c",
-                "reference": "38e57b6e4c34cb497154053334f75a24ced4138c",
-                "shasum": ""
-            },
-            "require": {
-                "ext-mongodb": "^1.1.0",
-                "php": ">=5.4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^4.8"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MongoDB\\": "src/"
-                },
-                "files": [
-                    "src/functions.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Jeremy Mikola",
-                    "email": "jmikola@gmail.com"
-                },
-                {
-                    "name": "Hannes Magnusson",
-                    "email": "bjori@mongodb.com"
-                },
-                {
-                    "name": "Derick Rethans",
-                    "email": "github@derickrethans.nl"
-                }
-            ],
-            "description": "MongoDB driver library",
-            "homepage": "https://jira.mongodb.org/browse/PHPLIB",
-            "keywords": [
-                "database",
-                "driver",
-                "mongodb",
-                "persistence"
-            ],
-            "time": "2016-08-15 09:07:30"
         },
         {
             "name": "webmil/text-language-detect",

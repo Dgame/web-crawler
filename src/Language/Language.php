@@ -11,13 +11,13 @@ use TextLanguageDetect\TextLanguageDetect;
 final class Language
 {
     /**
-     * @var null|Language
+     * @var Language
      */
-    private static $instance = null;
+    private static $instance;
     /**
-     * @var null|TextLanguageDetect
+     * @var TextLanguageDetect
      */
-    private $detector = null;
+    private $detector;
 
     /**
      * Language constructor.
