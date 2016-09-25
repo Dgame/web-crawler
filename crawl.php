@@ -4,7 +4,6 @@ const LOG           = false;
 const VERBOSE_LOG   = false;
 const SHOW_ERRORS   = true;
 const DB_INSERT     = true;
-const DB_BULK_LIMIT = 1000;
 
 use Doody\Crawler\Crawler\DataRecorder;
 use Doody\Crawler\Logger\FileLogger;
@@ -24,13 +23,14 @@ if (!LOG) {
 }
 
 try {
-    $crawler = new Crawler($url);
-
-    DataRecorder::Instance()->apply();
+    $recorder = new DataRecorder();
+    $crawler = new Crawler($recorder, $url);
 
     //    register_shutdown_function('shutdown', $crawler);
 
     print implode(PHP_EOL, $crawler->getLinks());
+
+    $recorder->apply();
 } catch (Throwable $t) {
     if (SHOW_ERRORS) {
         print $t;

@@ -1,6 +1,5 @@
 pub mod debug;
 
-//extern crate crossbeam;
 use std::thread;
 use crawler::debug::Debug;
 

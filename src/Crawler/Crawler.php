@@ -23,6 +23,10 @@ final class Crawler
      * @var array
      */
     private $links = [];
+    /**
+     * @var DataRecorder
+     */
+    private $recorder;
 
     /**
      * ScanProcedure constructor.
@@ -31,8 +35,10 @@ final class Crawler
      *
      * @throws \Exception
      */
-    public function __construct(string $url)
+    public function __construct(DataRecorder $recorder, string $url)
     {
+        $this->recorder = $recorder;
+
         FileLogger::Instance()->log('Crawle die Seite "%s"', $url);
 
         $this->url = new Url($url);
@@ -75,11 +81,11 @@ final class Crawler
             $url           = new Url($href);
             $this->links[] = $url->asString();
 
-            $relation = RelationProcedure::Link($this->url)->with($url);
             FileLogger::Instance()->log('Insert "%s" (parent war "%s")',
-                                        $relation->getChild()->asString(),
-                                        $relation->getParent()->asString());
-            DataRecorder::Instance()->append($relation, $filter);
+                                        $url->asString(),
+                                        $this->url->asString());
+
+            $this->recorder->append($this->url, $url, $filter);
         }
     }
 }

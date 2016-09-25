@@ -3,9 +3,8 @@
 namespace Doody\Crawler\Pagerank;
 
 use MongoDB\BSON\Javascript;
-use MongoDB\Collection;
-use MongoDB\Model\BSONArray;
 use MongoDB\Client;
+use MongoDB\Collection;
 
 class Pagerank
 {
@@ -35,9 +34,9 @@ class Pagerank
      */
     public function __construct()
     {
-        $this->client       = new Client();
-        $this->db           = $this->client->selectDatabase(self::DB_NAME);
-        $this->pages_coll   = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
+        $this->client     = new Client();
+        $this->db         = $this->client->selectDatabase(self::DB_NAME);
+        $this->pages_coll = $this->client->selectCollection(self::DB_NAME, self::DB_COLLECTION);
     }
 
     /**
@@ -45,7 +44,7 @@ class Pagerank
      * iterative PageRank is applied until the average difference in Pagerank
      * values is below the given threshold
      *
-     * @param float $threshold The threshold, which causes, if below, the 
+     * @param float $threshold The threshold, which causes, if below, the
      *                         abortion of the pagerank algorithm
      */
     public function calculate(float $threshold)
@@ -80,8 +79,6 @@ class Pagerank
     /**
      * Given the pages collection. Prepare constructs an initial collection
      * which is used to perform a pagerank calculation.
-     *
-     * @return The total size of the Graph(Node cardinality)
      */
     private function prepare()
     {
@@ -89,7 +86,7 @@ class Pagerank
         $this->db->dropCollection($initial_coll);
         $this->db->createCollection($initial_coll);
 
-        $pr_coll    = $this->client->selectCollection(self::DB_NAME, $initial_coll);
+        $pr_coll = $this->client->selectCollection(self::DB_NAME, $initial_coll);
 
         $bulk = [];
         //Aggregate by outgoing links and count them
@@ -100,29 +97,29 @@ class Pagerank
                 ],
                 [
                     '$group' =>
-                    [
-                        '_id'     => '$in',
-                        'count'   => ['$sum' => 1],
-                        'out'     => ['$addToSet' => '$_id'],
-                    ],
+                        [
+                            '_id'   => '$in',
+                            'count' => ['$sum' => 1],
+                            'out'   => ['$addToSet' => '$_id'],
+                        ],
                 ],
             ]
         );
 
         foreach ($outs as $out) {
-            $page   = $this->pages_coll->findOne(['url' => $out['_id']]);
+            $page = $this->pages_coll->findOne(['url' => $out['_id']]);
             if ($page !== null) {
                 $bulk[] = [
-                    '_id'       => $page['_id'],
-                    'value'     =>
+                    '_id'   => $page['_id'],
+                    'value' =>
                         [
-                            'pr'            => 1,
-                            'out'           => $this->mergeValueIntoArray($out['out']),
-                            'out_count'     => $out['count'],
-                            'diff'          => 0,
-                            'prev_pr'       => 0,
+                            'pr'        => 1,
+                            'out'       => $this->mergeValueIntoArray($out['out']),
+                            'out_count' => $out['count'],
+                            'diff'      => 0,
+                            'prev_pr'   => 0,
                         ],
-                    ];
+                ];
                 if (count($bulk) % self::BULK_SIZE === 0) {
                     $pr_coll->insertMany($bulk);
                     $bulk = [];
@@ -139,19 +136,19 @@ class Pagerank
         $pages = $this->pages_coll->find();
         foreach ($pages as $page) {
             if (!$pr_coll->findOne(['_id' => $page['_id']])) {
-                $in = $this->transformIn($page['in']);
+                $in       = $this->transformIn($page['in']);
                 $count_in = count($in);
                 if ($count_in > 0) {
                     $bulk[] = [
-                        '_id'       => $page['_id'],
-                        'value'     =>
-                        [
-                            'pr'            => 1,
-                            'out'           => $in,
-                            'out_count'     => $count_in,
-                            'diff'          => 0,
-                            'prev_pr'       => 0,
-                        ],
+                        '_id'   => $page['_id'],
+                        'value' =>
+                            [
+                                'pr'        => 1,
+                                'out'       => $in,
+                                'out_count' => $count_in,
+                                'diff'      => 0,
+                                'prev_pr'   => 0,
+                            ],
                     ];
 
                     if (count($bulk) % self::BULK_SIZE === 0) {
@@ -177,11 +174,12 @@ class Pagerank
                 $result[] = $page['_id']->__toString();
             }
         }
+
         return $result;
     }
 
     /**
-     * Performs a Pagerank iteration on a given initial graph $i - 1. Calls a 
+     * Performs a Pagerank iteration on a given initial graph $i - 1. Calls a
      * MapReduce function, which code can be found in the js/ subfolder.
      *
      * @param int $i the current iteration. Creates a Collection, which ends on
@@ -189,7 +187,7 @@ class Pagerank
      */
     private function iteration(int $i)
     {
-        $cursor   = $this->db->command(
+        $cursor = $this->db->command(
             [
                 'mapReduce' => self::PR_COLLECTION . ($i - 1),
                 'map'       => new Javascript(file_get_contents(dirname(__FILE__) . '/js/map.js')),
@@ -208,7 +206,7 @@ class Pagerank
      */
     public function transfer(int $i)
     {
-        $pr_coll    = $this->client->selectCollection(self::DB_NAME, self::PR_COLLECTION . $i);
+        $pr_coll = $this->client->selectCollection(self::DB_NAME, self::PR_COLLECTION . $i);
 
         $docs  = $pr_coll->find();
         $total = $this->total($pr_coll, '$_id');
@@ -227,9 +225,9 @@ class Pagerank
     /**
      * Count all documents in a collection, by a given grouping
      *
-     * @param $collection the collecten where the aggregation will be processed
-     * @param string $groupBy the group identifier by which field the
-     *                        aggregation should group the collection
+     * @param        $collection the collecten where the aggregation will be processed
+     * @param string $groupBy    the group identifier by which field the
+     *                           aggregation should group the collection
      *
      * @return int the total number of documents after the group
      */
