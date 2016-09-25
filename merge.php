@@ -10,18 +10,20 @@ $pages = MongoCollection::Instance('raw_pages')->getCollection()->aggregate(
             '$unwind' => '$in',
         ],
         [
-            '$group' =>
-                [
-                    '_id'      => '$url',
-                    'url'      => ['$first' => '$url'],
-                    'base'     => ['$first' => '$base'],
-                    'content'  => ['$first' => '$content'],
-                    'title'    => ['$first' => '$title'],
-                    'language' => ['$first' => '$language'],
-                    'pr'       => ['$avg' => '$pr'],
-                    'in'       => ['$addToSet' => '$in'],
-                ],
+            '$group' => [
+                '_id'      => '$url',
+                'url'      => ['$first' => '$url'],
+                'base'     => ['$first' => '$base'],
+                'content'  => ['$first' => '$content'],
+                'title'    => ['$first' => '$title'],
+                'language' => ['$first' => '$language'],
+                'pr'       => ['$avg' => '$pr'],
+                'in'       => ['$addToSet' => '$in'],
+            ],
         ],
+    ],
+    [
+        'allowDiskUse' => true
     ]
 );
 
